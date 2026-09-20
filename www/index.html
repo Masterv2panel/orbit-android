@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>ORBIT | آزمایشگاه ترکیب بدن</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: local('Vazirmatn'); }
+
+  :root{
+    --void:#05060d;
+    --void-2:#0a0d1c;
+    --panel: rgba(18,22,42,0.55);
+    --panel-solid:#10132a;
+    --glass-line: rgba(140,170,255,0.14);
+    --glass-line-strong: rgba(140,170,255,0.32);
+    --cyan:#4beef0;
+    --cyan-deep:#0fb8c9;
+    --violet:#8a6bff;
+    --magenta:#ff5fb0;
+    --amber:#ffb454;
+    --ok:#4be6a0;
+    --warn:#ffb454;
+    --danger:#ff5f6d;
+    --text:#eef1ff;
+    --text-dim: rgba(238,241,255,0.58);
+    --text-faint: rgba(238,241,255,0.36);
+    --star-opacity: 1;
+  }
+
+  :root[data-theme="light"]{
+    --void:#eef1fb;
+    --void-2:#e4e9fa;
+    --panel: rgba(255,255,255,0.68);
+    --panel-solid:#ffffff;
+    --glass-line: rgba(60,70,140,0.14);
+    --glass-line-strong: rgba(60,70,140,0.28);
+    --cyan-deep:#0d8f9c;
+    --text:#171a2e;
+    --text-dim: rgba(23,26,46,0.62);
+    --text-faint: rgba(23,26,46,0.42);
+    --star-opacity: 0.25;
+  }
+
+  body, .panel, input[type=number], select, .metric, .result-hero, .cal-card,
+  .workout-day, .photo-slot, .ai-box, .history-item, .macro-card{
+    transition: background-color .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease;
+  }
+
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Vazirmatn','Tahoma',system-ui,sans-serif;
+    min-height:100vh;
+    line-height:1.6;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  #stars{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .nebula{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 700px 500px at 15% -5%, rgba(138,107,255,0.28), transparent 60%),
+      radial-gradient(ellipse 600px 500px at 100% 10%, rgba(75,238,240,0.16), transparent 55%),
+      radial-gradient(ellipse 500px 600px at 90% 100%, rgba(255,95,176,0.14), transparent 55%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+  }
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.35;
+    background-image:
+      linear-gradient(rgba(140,170,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140,170,255,0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black 0%, transparent 75%);
+  }
+
+  .wrap{ max-width: 640px; margin:0 auto; padding: 26px 18px 60px; position:relative; z-index:2; }
+
+  header{ padding: 6px 2px 30px; text-align:center; position:relative; }
+  .theme-toggle{
+    position:absolute; top:0; left:2px; width:40px; height:40px; border-radius:12px;
+    background: var(--panel); backdrop-filter: blur(14px); border:1px solid var(--glass-line);
+    display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer;
+    transition: transform .2s, border-color .2s;
+  }
+  .theme-toggle:active{ transform: scale(0.92); }
+  .badge-row{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 6px 14px 6px 10px; border-radius: 30px;
+    background: rgba(75,238,240,0.08); border: 1px solid rgba(75,238,240,0.28);
+    font-size: 11.5px; letter-spacing:0.08em; font-weight:700;
+    color: var(--cyan); margin-bottom: 18px;
+  }
+  .badge-row .dot{
+    width:6px; height:6px; border-radius:50%; background: var(--cyan);
+    box-shadow: 0 0 8px 2px var(--cyan); animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  h1{
+    font-size: 38px; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #ffffff 10%, var(--cyan) 55%, var(--violet) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    line-height:1.2;
+  }
+  header p{ margin: 0 auto; color: var(--text-dim); font-size: 14.5px; max-width: 40ch; }
+
+  .panel{
+    background: var(--panel);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--glass-line); border-radius: 20px;
+    padding: 22px 20px; margin-bottom: 16px; position: relative;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .panel::before{
+    content:''; position:absolute; top:0; right:24px; left:24px; height:1px;
+    background: linear-gradient(90deg, transparent, var(--glass-line-strong), transparent);
+  }
+
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 20px; }
+  .panel-head-left{ display:flex; align-items:center; gap:10px; }
+  .panel-num{
+    width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800;
+    background: linear-gradient(135deg, rgba(75,238,240,0.18), rgba(138,107,255,0.18));
+    border: 1px solid var(--glass-line-strong); color: var(--cyan); flex-shrink:0;
+  }
+  .panel-head h2{ font-size: 14px; font-weight: 700; letter-spacing: 0.03em; margin:0; color: var(--text); }
+
+  .field{ margin-bottom: 16px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size: 13px; font-weight:600; margin-bottom:8px; color: var(--text-dim);
+  }
+  .field label .unit{ font-weight:500; color: var(--text-faint); font-size:11.5px; }
+
+  input[type=number]{
+    width:100%; font-family:inherit; font-size: 17px; font-weight:600;
+    padding: 13px 14px; border: 1px solid var(--glass-line); border-radius: 12px;
+    background: rgba(5,8,20,0.5); color: var(--text); outline:none;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    -moz-appearance: textfield;
+  }
+  input[type=number]::placeholder{ color: var(--text-faint); font-weight:400; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  input[type=number]:focus{
+    border-color: var(--cyan); background: rgba(75,238,240,0.05);
+    box-shadow: 0 0 0 3px rgba(75,238,240,0.12), 0 0 18px rgba(75,238,240,0.15);
+  }
+
+  select{
+    width:100%; font-family:inherit; font-size: 14.5px; font-weight:600;
+    padding: 13px 14px; border: 1px solid var(--glass-line); border-radius: 12px;
+    background: rgba(5,8,20,0.5); color: var(--text); outline:none;
+    appearance:none; -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234beef0' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position: left 14px center;
+    padding-left: 36px;
+  }
+  select:focus{ border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(75,238,240,0.12); }
+  select option{ background: var(--panel-solid); color: var(--text); }
+
+  .seg{ display:flex; gap:8px; }
+  .seg button{
+    flex:1; font-family:inherit; font-size:14px; font-weight:700; padding: 12px 8px;
+    border: 1px solid var(--glass-line); background: rgba(5,8,20,0.4); color: var(--text-dim);
+    border-radius: 12px; cursor:pointer; transition: all .18s;
+  }
+  .seg button.active{
+    background: linear-gradient(135deg, rgba(75,238,240,0.22), rgba(138,107,255,0.22));
+    border-color: var(--cyan); color: #fff;
+    box-shadow: 0 0 20px rgba(75,238,240,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .seg button:focus-visible{ outline: 2px solid var(--cyan); outline-offset:2px; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  .method-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .method-toggle button{
+    flex:1; font-family:inherit; font-size:12.5px; font-weight:700; padding: 10px 6px;
+    border:1px solid var(--glass-line); background: rgba(5,8,20,0.4); color: var(--text-dim);
+    border-radius: 12px; cursor:pointer; transition: all .18s;
+  }
+  .method-toggle button.active{
+    background: linear-gradient(135deg, var(--violet), var(--magenta));
+    border-color: transparent; color: #fff; box-shadow: 0 0 20px rgba(138,107,255,0.35);
+  }
+
+  .navy-fields{ display:none; }
+  .navy-fields.show{ display:block; }
+  .helper{ font-size:12px; color: var(--text-faint); margin-top:8px; line-height:1.6; }
+
+  .compute-btn{
+    width:100%; font-family:inherit; font-size:16px; font-weight:800; padding: 17px;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 100%);
+    color: #060714; border:none; border-radius: 16px; cursor:pointer; letter-spacing:0.01em;
+    margin-top:4px; position:relative; overflow:hidden;
+    box-shadow: 0 10px 40px -8px rgba(75,238,240,0.45);
+    transition: transform .12s, box-shadow .18s;
+  }
+  .compute-btn:active{ transform: scale(0.98); }
+  .compute-btn:focus-visible{ outline: 2px solid #fff; outline-offset:3px; }
+  .compute-btn.disabled{ opacity:0.35; pointer-events:none; box-shadow:none; }
+  .compute-btn span{ position:relative; z-index:1; }
+
+  .ghost-btn{
+    width:100%; font-family:inherit; font-size:13.5px; font-weight:700; padding: 13px;
+    background: rgba(5,8,20,0.4); color: var(--text-dim); border: 1px solid var(--glass-line);
+    border-radius: 14px; cursor:pointer; margin-top:10px; transition: all .18s;
+  }
+  .ghost-btn:hover{ border-color: var(--glass-line-strong); color:var(--text); }
+  .ghost-btn.danger-ghost{ color: var(--danger); }
+
+  #results{ display:none; }
+  #results.show{ display:block; animation: rise .5s cubic-bezier(.2,.8,.2,1); }
+  @keyframes rise{ from{opacity:0; transform: translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .result-hero{
+    background: linear-gradient(160deg, rgba(75,238,240,0.10), rgba(138,107,255,0.10)), var(--panel-solid);
+    border: 1px solid var(--glass-line-strong); border-radius: 22px; padding: 30px 24px;
+    margin-bottom: 16px; position: relative; overflow:hidden; text-align:center;
+  }
+  .result-hero::before{
+    content:''; position:absolute; width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(75,238,240,0.35), transparent 70%);
+    top:-90px; left:-70px; filter: blur(10px);
+  }
+  .rh-label{ font-size:12px; letter-spacing:0.14em; text-transform:uppercase; font-weight:800; color: var(--cyan); margin-bottom:14px; position:relative; }
+  .rh-value{
+    font-size:60px; font-weight:800; line-height:1; letter-spacing:-0.02em;
+    font-variant-numeric: tabular-nums; position:relative; text-shadow: 0 0 40px rgba(75,238,240,0.35);
+  }
+  .rh-value sup{ font-size:18px; font-weight:700; color: var(--text-faint); margin-right:6px; text-shadow:none; }
+  .rh-tag{ display:inline-block; margin-top:16px; padding:7px 18px; border-radius:30px; font-size:12.5px; font-weight:800; position:relative; }
+  .rh-tag.ok{ color:#0a2e20; background: var(--ok); box-shadow:0 0 20px rgba(75,230,160,0.4);}
+  .rh-tag.warn{ color:#3a2600; background: var(--amber); box-shadow:0 0 20px rgba(255,180,84,0.4);}
+  .rh-tag.danger{ color:#3a0a0e; background: var(--danger); box-shadow:0 0 20px rgba(255,95,109,0.4);}
+
+  .bmi-scale{ margin-top:22px; position:relative; }
+  .bmi-track{ height:10px; border-radius:8px; display:flex; overflow:hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+  .bmi-track span{ height:100%; }
+  .bmi-marker{
+    position:absolute; top:-5px; width:3px; height:20px; background:#fff; border-radius:2px;
+    box-shadow: 0 0 0 3px var(--panel-solid), 0 0 14px #fff; transition: right .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .bmi-labels{ display:flex; justify-content:space-between; font-size:10.5px; color: var(--text-faint); margin-top:8px; font-weight:600; }
+
+  .metric-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .metric{ background: var(--panel); backdrop-filter: blur(14px); border:1px solid var(--glass-line); border-radius:16px; padding: 18px 16px; position:relative; }
+  .metric.fat::before, .metric.muscle::before, .metric.bmr::before, .metric.whtr::before{
+    content:''; position:absolute; top:0; right:0; left:0; height:2px; border-radius:16px 16px 0 0;
+  }
+  .metric.fat::before{ background: linear-gradient(90deg, var(--amber), var(--magenta)); }
+  .metric.muscle::before{ background: linear-gradient(90deg, var(--cyan), var(--ok)); }
+  .metric.bmr::before{ background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+  .metric.whtr::before{ background: linear-gradient(90deg, var(--magenta), var(--amber)); }
+  .metric .m-label{ font-size:11px; font-weight:800; letter-spacing:0.05em; color: var(--text-faint); text-transform:uppercase; margin-bottom:9px; }
+  .metric .m-value{ font-size:26px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .metric .m-value small{ font-size:13px; font-weight:700; color: var(--text-faint); }
+  .metric .m-note{ font-size:11.5px; color: var(--text-faint); margin-top:6px; }
+
+  .bar-row{ margin-bottom:16px; }
+  .bar-row:last-child{ margin-bottom:0; }
+  .bar-head{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; }
+  .bar-head .b-name{ font-weight:700; color: var(--text-dim); display:flex; align-items:center; gap:8px; }
+  .bar-head .b-name .swatch{ width:9px; height:9px; border-radius:3px; }
+  .bar-head .b-val{ font-weight:800; font-variant-numeric: tabular-nums; }
+  .bar-track{ height:12px; background: rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:8px; transition: width .6s cubic-bezier(.2,.8,.2,1); position:relative; }
+
+  .compare-note{ font-size:12.5px; color: var(--text-dim); margin-top:18px; padding-top:16px; border-top: 1px dashed var(--glass-line-strong); line-height:1.8; }
+  .compare-note b{ color: var(--cyan); font-weight:700; }
+
+  /* Calorie targets */
+  .cal-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:4px; }
+  .cal-card{
+    background: rgba(5,8,20,0.4); border:1px solid var(--glass-line); border-radius:14px;
+    padding: 14px 12px; text-align:center;
+  }
+  .cal-card.highlight{ border-color: var(--cyan); background: rgba(75,238,240,0.06); }
+  .cal-card .c-label{ font-size:10.5px; font-weight:700; color: var(--text-faint); margin-bottom:6px; }
+  .cal-card .c-value{ font-size:19px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .cal-card .c-value small{ font-size:11px; color: var(--text-faint); font-weight:600; }
+
+  /* Trend chart */
+  .trend-empty{
+    text-align:center; padding: 30px 10px; color: var(--text-faint); font-size:13px; line-height:1.8;
+  }
+  .trend-wrap{ position:relative; }
+  #trendCanvas{ width:100%; height:150px; display:block; }
+  .trend-legend{ display:flex; gap:16px; justify-content:center; margin-top:12px; font-size:11.5px; color:var(--text-dim); }
+  .trend-legend span{ display:flex; align-items:center; gap:6px; }
+  .trend-legend .sw{ width:10px; height:3px; border-radius:2px; }
+
+  .history-list{ margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+  .history-item{
+    display:flex; justify-content:space-between; align-items:center;
+    background: rgba(5,8,20,0.35); border:1px solid var(--glass-line); border-radius:12px;
+    padding: 10px 14px; font-size:12.5px;
+  }
+  .history-item .h-date{ color: var(--text-faint); font-weight:600; }
+  .history-item .h-stats{ display:flex; gap:12px; font-weight:700; }
+  .history-item .h-stats b{ color:var(--cyan); font-weight:800; }
+
+  footer{ text-align:center; font-size:11.5px; color: var(--text-faint); margin-top:34px; padding:0 24px; line-height:1.8; }
+
+  /* Profile switcher */
+  .profile-bar{ display:flex; gap:8px; overflow-x:auto; padding: 4px 2px 14px; margin-bottom:4px; -webkit-overflow-scrolling:touch; }
+  .profile-bar::-webkit-scrollbar{ display:none; }
+  .profile-chip{
+    flex-shrink:0; display:flex; align-items:center; gap:8px;
+    padding: 9px 14px; border-radius:30px; border:1px solid var(--glass-line);
+    background: rgba(5,8,20,0.4); color: var(--text-dim); font-size:13px; font-weight:700;
+    cursor:pointer; transition: all .18s; white-space:nowrap;
+  }
+  .profile-chip .p-dot{ width:7px; height:7px; border-radius:50%; background: var(--text-faint); }
+  .profile-chip.active{
+    border-color: var(--cyan); color:#fff;
+    background: linear-gradient(135deg, rgba(75,238,240,0.18), rgba(138,107,255,0.18));
+    box-shadow: 0 0 16px rgba(75,238,240,0.18);
+  }
+  .profile-chip.active .p-dot{ background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .profile-chip.add-chip{ border-style:dashed; color: var(--text-faint); }
+
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:50; background: rgba(2,3,8,0.7); backdrop-filter: blur(4px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-box{
+    width:100%; max-width:360px; background: var(--panel-solid); border:1px solid var(--glass-line-strong);
+    border-radius:20px; padding:22px 20px; box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7);
+  }
+  .modal-box h3{ font-size:15px; font-weight:800; margin:0 0 16px; color:var(--text); }
+  .modal-actions{ display:flex; gap:10px; margin-top:16px; }
+  .modal-actions button{ flex:1; }
+
+  /* Macros panel */
+  .goal-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .goal-toggle button{
+    flex:1; font-family:inherit; font-size:12px; font-weight:700; padding: 10px 4px;
+    border:1px solid var(--glass-line); background: rgba(5,8,20,0.4); color: var(--text-dim);
+    border-radius: 12px; cursor:pointer; transition: all .18s;
+  }
+  .goal-toggle button.active{
+    background: linear-gradient(135deg, var(--ok), var(--cyan)); border-color:transparent; color:#062018;
+    box-shadow: 0 0 18px rgba(75,230,160,0.3);
+  }
+  .macro-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+  .macro-card{ background: rgba(5,8,20,0.4); border:1px solid var(--glass-line); border-radius:14px; padding:14px 10px; text-align:center; position:relative; overflow:hidden; }
+  .macro-card::before{ content:''; position:absolute; top:0; right:0; left:0; height:2px; }
+  .macro-card.protein::before{ background: linear-gradient(90deg,#4beef0,#4be6a0); }
+  .macro-card.carb::before{ background: linear-gradient(90deg,#ffb454,#ff9a3c); }
+  .macro-card.fatm::before{ background: linear-gradient(90deg,#8a6bff,#ff5fb0); }
+  .macro-card .mc-label{ font-size:10.5px; font-weight:800; color: var(--text-faint); margin-bottom:8px; }
+  .macro-card .mc-value{ font-size:20px; font-weight:800; }
+  .macro-card .mc-value small{ font-size:10.5px; color: var(--text-faint); font-weight:600; }
+  .macro-card .mc-cal{ font-size:10.5px; color: var(--text-faint); margin-top:4px; }
+  .macro-ring-wrap{ display:flex; justify-content:center; margin: 6px 0 20px; }
+
+  /* Population comparison */
+  .compare-bars{ display:flex; flex-direction:column; gap:16px; }
+  .pc-row .pc-head{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px; }
+  .pc-row .pc-head .pc-name{ font-weight:700; color:var(--text-dim); }
+  .pc-row .pc-head .pc-pct{ font-weight:800; color: var(--cyan); }
+  .pc-track{ position:relative; height:34px; background: rgba(255,255,255,0.05); border-radius:10px; overflow:visible; }
+  .pc-dist{ position:absolute; inset:0; border-radius:10px; overflow:hidden; opacity:0.5; }
+  .pc-marker{
+    position:absolute; top:-4px; width:3px; height:42px; background:#fff; border-radius:2px;
+    box-shadow: 0 0 10px #fff; transition: right .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .pc-marker-label{
+    position:absolute; top:-26px; transform:translateX(50%); font-size:10.5px; font-weight:800;
+    color:#fff; background: var(--violet); padding:2px 8px; border-radius:10px; white-space:nowrap;
+  }
+  .pc-avg-label{ font-size:11px; color: var(--text-faint); margin-top:8px; text-align:center; }
+
+  /* Print button */
+  .action-row{ display:flex; gap:10px; margin-top:10px; }
+  .action-row .ghost-btn{ margin-top:0; }
+  .icon-inline{ display:inline-flex; align-items:center; gap:6px; justify-content:center; }
+
+  /* Print / PDF export styles */
+  @media print{
+    body{ background:#fff !important; color:#111 !important; }
+    #stars, .nebula, .grid-overlay, .profile-bar, .compute-btn, .ghost-btn, .action-row,
+    #panel1 .method-toggle, header .badge-row, .modal-backdrop, .theme-toggle,
+    .photo-grid, .reminder-row, .toggle-switch, #importFileInput, #syncPanel{ display:none !important; }
+    .panel{
+      background:#fff !important; border:1px solid #ccc !important; box-shadow:none !important;
+      backdrop-filter:none !important; break-inside:avoid;
+    }
+    .panel::before{ display:none; }
+    .result-hero{ background:#fff !important; border:1px solid #ccc !important; }
+    h1{ -webkit-text-fill-color: initial !important; background:none !important; color:#111 !important; }
+    .rh-value, .m-value, .c-value, .mc-value, .iw-value, .ia-value, .ct-val{ color:#111 !important; text-shadow:none !important; }
+    * { color:#111 !important; }
+    .rh-tag.ok, .cal-card.highlight, .ideal-card, .ct-row, .ideal-avg-band{ background:#f4f4f4 !important; border-color:#ccc !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+
+  /* Workout plan */
+  .workout-day{
+    background: rgba(5,8,20,0.4); border:1px solid var(--glass-line); border-radius:14px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .workout-day:last-child{ margin-bottom:0; }
+  .wd-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .wd-head .wd-name{ font-weight:800; font-size:13.5px; color: var(--text); }
+  .wd-head .wd-tag{
+    font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px;
+    background: rgba(75,238,240,0.12); color: var(--cyan);
+  }
+  .wd-list{ display:flex; flex-direction:column; gap:6px; }
+  .wd-item{ display:flex; justify-content:space-between; font-size:12.5px; color: var(--text-dim); }
+  .wd-item b{ color: var(--text); font-weight:700; }
+
+  /* Progress photos */
+  .photo-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px; }
+  .photo-slot{
+    aspect-ratio: 3/4; border-radius:14px; border:1.5px dashed var(--glass-line-strong);
+    background: rgba(5,8,20,0.35); display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:8px; cursor:pointer; position:relative; overflow:hidden; transition: border-color .18s;
+  }
+  .photo-slot:hover{ border-color: var(--cyan); }
+  .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+  .photo-slot .ps-label{ font-size:11.5px; color: var(--text-faint); font-weight:700; text-align:center; padding:0 10px; }
+  .photo-slot .ps-date{
+    position:absolute; bottom:6px; right:6px; left:6px; font-size:10px; font-weight:700; color:#fff;
+    background: rgba(0,0,0,0.55); padding:3px 8px; border-radius:8px; text-align:center;
+  }
+  .photo-slot .ps-remove{
+    position:absolute; top:6px; left:6px; width:22px; height:22px; border-radius:50%;
+    background: rgba(0,0,0,0.6); color:#fff; border:none; font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .photo-plus{ font-size:26px; color: var(--text-faint); line-height:1; }
+  input[type=file]{ display:none; }
+
+  /* AI advisor */
+  .ai-box{
+    background: linear-gradient(160deg, rgba(138,107,255,0.08), rgba(75,238,240,0.06)), rgba(5,8,20,0.4);
+    border:1px solid var(--glass-line-strong); border-radius:16px; padding:18px 16px; min-height:60px;
+  }
+  .ai-box.empty{ display:flex; align-items:center; justify-content:center; color: var(--text-faint); font-size:13px; text-align:center; padding:24px 16px; }
+  .ai-loading{ display:flex; align-items:center; gap:10px; color: var(--text-dim); font-size:13px; }
+  .ai-spinner{
+    width:16px; height:16px; border-radius:50%; border:2px solid var(--glass-line-strong); border-top-color: var(--cyan);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .ai-text{ font-size:13.5px; line-height:2; color: var(--text); white-space:pre-wrap; }
+  .ai-text strong{ color: var(--cyan); }
+
+  /* Reminder */
+  .reminder-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .toggle-switch{
+    width:46px; height:26px; border-radius:16px; background: rgba(255,255,255,0.08);
+    border:1px solid var(--glass-line); position:relative; cursor:pointer; flex-shrink:0; transition: background .18s;
+  }
+  .toggle-switch.on{ background: linear-gradient(135deg, var(--cyan), var(--violet)); border-color:transparent; }
+  .toggle-switch .knob{
+    position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%; background:#fff;
+    transition: right .18s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .toggle-switch.on .knob{ right:22px; }
+  .reminder-status{ font-size:12px; color: var(--text-faint); margin-top:10px; line-height:1.7; }
+
+  /* Sync code box */
+  .sync-code-box{
+    font-family: 'Courier New', monospace; font-size:13px; font-weight:700; word-break:break-all;
+    background: rgba(5,8,20,0.45); border:1px dashed var(--glass-line-strong); border-radius:12px;
+    padding:14px 16px; color: var(--cyan); margin-bottom:12px; text-align:center; letter-spacing:0.02em;
+  }
+  :root[data-theme="light"] .sync-code-box{ background: rgba(0,0,0,0.03); color: var(--cyan-deep); }
+
+  /* Ideal weight grid */
+  .ideal-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:14px; }
+  .ideal-card{
+    background: rgba(5,8,20,0.35); border:1px solid var(--glass-line); border-radius:14px;
+    padding:14px 12px; text-align:center;
+  }
+  :root[data-theme="light"] .ideal-card{ background: rgba(0,0,0,0.02); }
+  .ideal-card .iw-label{ font-size:10.5px; font-weight:700; color: var(--text-faint); margin-bottom:6px; }
+  .ideal-card .iw-value{ font-size:18px; font-weight:800; }
+  .ideal-card .iw-value small{ font-size:11px; color: var(--text-faint); font-weight:600; }
+  .ideal-avg-band{
+    background: linear-gradient(135deg, rgba(75,238,240,0.10), rgba(138,107,255,0.10));
+    border: 1px solid var(--glass-line-strong); border-radius:14px; padding:14px 16px; text-align:center;
+  }
+  .ideal-avg-band .ia-label{ font-size:11px; font-weight:700; color: var(--cyan); margin-bottom:6px; }
+  .ideal-avg-band .ia-value{ font-size:22px; font-weight:800; }
+  .ideal-avg-band .ia-diff{ font-size:12px; color: var(--text-dim); margin-top:6px; }
+
+  /* Formula comparison table */
+  .compare-table{ display:flex; flex-direction:column; gap:8px; }
+  .ct-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background: rgba(5,8,20,0.3); border:1px solid var(--glass-line); border-radius:12px; padding:11px 14px;
+  }
+  :root[data-theme="light"] .ct-row{ background: rgba(0,0,0,0.02); }
+  .ct-row .ct-method{ font-size:12.5px; font-weight:700; color: var(--text-dim); }
+  .ct-row .ct-val{ font-size:14px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .ct-row.primary{ border-color: var(--cyan); background: rgba(75,238,240,0.06); }
+  .ct-row.primary .ct-val{ color: var(--cyan); }
+
+  /* Animated number transition helper */
+  .num-flip{ display:inline-block; }
+</style>
+</head>
+<body>
+
+<div class="nebula"></div>
+<div class="grid-overlay"></div>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+
+  <header>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="تغییر تم">
+      <span id="themeIcon">🌙</span>
+    </button>
+    <div class="badge-row"><span class="dot"></span>آزمایشگاه ترکیب بدن نسل جدید</div>
+    <h1>ORBIT</h1>
+    <p>شاخص توده بدنی، انرژی مصرفی و ترکیب بدن را با دقت آزمایشگاهی مسیریابی کنید.</p>
+  </header>
+
+  <div class="profile-bar" id="profileBar"></div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-head-left"><div class="panel-num">01</div><h2>مشخصات پایه</h2></div></div>
+
+    <div class="field">
+      <label>جنسیت</label>
+      <div class="seg" id="genderSeg">
+        <button type="button" data-val="male" class="active">مرد</button>
+        <button type="button" data-val="female">زن</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>سن <span class="unit">سال</span></label>
+      <input type="number" id="age" inputmode="numeric" placeholder="مثلاً ۲۸" min="10" max="100">
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>قد <span class="unit">سانتی‌متر</span></label>
+        <input type="number" id="height" inputmode="decimal" placeholder="۱۷۵" min="100" max="250">
+      </div>
+      <div class="field">
+        <label>وزن <span class="unit">کیلوگرم</span></label>
+        <input type="number" id="weight" inputmode="decimal" placeholder="۷۵" min="30" max="300" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-head-left"><div class="panel-num">02</div><h2>روش محاسبه چربی بدن</h2></div></div>
+
+    <div class="method-toggle" id="methodSeg">
+      <button type="button" data-val="navy" class="active">دور بدن (US Navy)</button>
+      <button type="button" data-val="deurenberg">سریع (Deurenberg)</button>
+    </div>
+
+    <div class="navy-fields show" id="navyFields">
+      <div class="grid2">
+        <div class="field">
+          <label>دور گردن <span class="unit">سانتی‌متر</span></label>
+          <input type="number" id="neck" inputmode="decimal" placeholder="۳۸" step="0.1">
+        </div>
+        <div class="field">
+          <label>دور کمر <span class="unit">سانتی‌متر</span></label>
+          <input type="number" id="waist" inputmode="decimal" placeholder="۸۵" step="0.1">
+        </div>
+      </div>
+      <div class="field" id="hipField" style="display:none;">
+        <label>دور باسن <span class="unit">سانتی‌متر</span></label>
+        <input type="number" id="hip" inputmode="decimal" placeholder="۹۸" step="0.1">
+      </div>
+      <p class="helper">اندازه‌گیری: گردن زیر برجستگی حنجره، کمر در باریک‌ترین بخش شکم، باسن در پهن‌ترین قسمت — نوار متر را محکم اما بدون فشردن پوست بکشید.</p>
+    </div>
+
+    <p class="helper" id="deurenbergHelper" style="display:none;">این روش فقط از قد، وزن، سن و جنسیت استفاده می‌کند — سریع‌تر اما تقریبی‌تر است.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-head-left"><div class="panel-num">03</div><h2>سطح فعالیت روزانه</h2></div></div>
+    <div class="field">
+      <label>برای محاسبه کالری مصرفی روزانه (TDEE)</label>
+      <select id="activity">
+        <option value="1.2">بی‌تحرک (کار پشت میز، بدون ورزش)</option>
+        <option value="1.375">فعالیت سبک (۱ تا ۳ روز ورزش در هفته)</option>
+        <option value="1.55" selected>فعالیت متوسط (۳ تا ۵ روز ورزش در هفته)</option>
+        <option value="1.725">فعالیت زیاد (۶ تا ۷ روز ورزش در هفته)</option>
+        <option value="1.9">فعالیت خیلی زیاد (ورزش سنگین روزانه یا شغل بدنی)</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="button" class="compute-btn disabled" id="computeBtn"><span>محاسبه دقیق</span></button>
+
+  <div id="results">
+
+    <div class="result-hero">
+      <div class="rh-label">شاخص توده بدنی · BMI</div>
+      <div class="rh-value" id="bmiValue">—<sup>kg/m²</sup></div>
+      <span class="rh-tag" id="bmiTag">—</span>
+      <div class="bmi-scale">
+        <div class="bmi-track">
+          <span style="width:18.5%; background:linear-gradient(90deg,#3a7bd5,#4beef0);"></span>
+          <span style="width:24%; background:linear-gradient(90deg,#4be6a0,#2fbf7d);"></span>
+          <span style="width:20%; background:linear-gradient(90deg,#ffb454,#ff9a3c);"></span>
+          <span style="width:37.5%; background:linear-gradient(90deg,#ff5f6d,#c93a4a);"></span>
+        </div>
+        <div class="bmi-marker" id="bmiMarker" style="right:50%;"></div>
+        <div class="bmi-labels"><span>۱۵</span><span>۱۸.۵</span><span>۲۵</span><span>۳۰</span><span>۴۰+</span></div>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric fat">
+        <div class="m-label">درصد چربی بدن</div>
+        <div class="m-value" id="bfValue">—<small>٪</small></div>
+        <div class="m-note" id="bfMethodNote">—</div>
+      </div>
+      <div class="metric muscle">
+        <div class="m-label">توده عضلانی</div>
+        <div class="m-value" id="muscleValue">—<small>kg</small></div>
+        <div class="m-note">روش Lee (۲۰۰۰)</div>
+      </div>
+      <div class="metric bmr">
+        <div class="m-label">متابولیسم پایه (BMR)</div>
+        <div class="m-value" id="bmrValue">—<small>kcal</small></div>
+        <div class="m-note">روش Mifflin-St Jeor</div>
+      </div>
+      <div class="metric whtr">
+        <div class="m-label">نسبت کمر به قد</div>
+        <div class="m-value" id="whtrValue">—</div>
+        <div class="m-note" id="whtrNote">—</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">04</div><h2>انرژی مصرفی روزانه (TDEE)</h2></div></div>
+      <div class="cal-grid">
+        <div class="cal-card">
+          <div class="c-label">کاهش وزن</div>
+          <div class="c-value" id="calLose">—<small> kcal</small></div>
+        </div>
+        <div class="cal-card highlight">
+          <div class="c-label">حفظ وزن</div>
+          <div class="c-value" id="calMaintain">—<small> kcal</small></div>
+        </div>
+        <div class="cal-card">
+          <div class="c-label">افزایش وزن</div>
+          <div class="c-value" id="calGain">—<small> kcal</small></div>
+        </div>
+        <div class="cal-card">
+          <div class="c-label">TDEE پایه</div>
+          <div class="c-value" id="calTdee">—<small> kcal</small></div>
+        </div>
+      </div>
+      <p class="helper">کاهش/افزایش وزن بر پایهٔ کسری/مازاد ۵۰۰ کالری روزانه (≈۰.۵ کیلوگرم در هفته) محاسبه شده است.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">05</div><h2>درشتی‌مغذی‌های پیشنهادی</h2></div></div>
+      <div class="goal-toggle" id="goalSeg">
+        <button type="button" data-val="lose">کاهش وزن</button>
+        <button type="button" data-val="maintain" class="active">حفظ وزن</button>
+        <button type="button" data-val="gain">عضله‌سازی</button>
+      </div>
+      <div class="macro-grid">
+        <div class="macro-card protein">
+          <div class="mc-label">پروتئین</div>
+          <div class="mc-value" id="macroProtein">—<small>g</small></div>
+          <div class="mc-cal" id="macroProteinCal">—</div>
+        </div>
+        <div class="macro-card carb">
+          <div class="mc-label">کربوهیدرات</div>
+          <div class="mc-value" id="macroCarb">—<small>g</small></div>
+          <div class="mc-cal" id="macroCarbCal">—</div>
+        </div>
+        <div class="macro-card fatm">
+          <div class="mc-label">چربی</div>
+          <div class="mc-value" id="macroFat">—<small>g</small></div>
+          <div class="mc-cal" id="macroFatCal">—</div>
+        </div>
+      </div>
+      <p class="helper" id="macroGoalNote">—</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">06</div><h2>برنامه ورزشی هفتگی پیشنهادی</h2></div></div>
+      <div id="workoutContent"></div>
+      <p class="helper">این برنامه بر اساس هدف و سطح فعالیت انتخابی تولید شده و جایگزین نظر مربی بدنسازی نیست — پیش از شروع هر برنامهٔ جدید با پزشک مشورت کنید.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">07</div><h2>مقایسه با میانگین جمعیت</h2></div></div>
+      <div class="compare-bars">
+        <div class="pc-row">
+          <div class="pc-head"><span class="pc-name">درصد چربی بدن</span><span class="pc-pct" id="pcFatPct">—</span></div>
+          <div class="pc-track">
+            <div class="pc-marker" id="pcFatMarker" style="right:50%;"><span class="pc-marker-label" id="pcFatLabel">—</span></div>
+          </div>
+          <div class="pc-avg-label" id="pcFatAvgLabel">—</div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-head"><span class="pc-name">شاخص توده بدنی</span><span class="pc-pct" id="pcBmiPct">—</span></div>
+          <div class="pc-track">
+            <div class="pc-marker" id="pcBmiMarker" style="right:50%;"><span class="pc-marker-label" id="pcBmiLabel">—</span></div>
+          </div>
+          <div class="pc-avg-label" id="pcBmiAvgLabel">—</div>
+        </div>
+      </div>
+      <p class="helper">بر پایهٔ داده‌های تقریبی میانگین جمعیت بزرگسال بر اساس سن و جنسیت — صرفاً جهت مرجع کلی، نه تشخیص پزشکی.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">08</div><h2>وزن ایده‌آل (چند مرجع علمی)</h2></div></div>
+      <div class="ideal-grid" id="idealWeightGrid"></div>
+      <p class="helper">میانگین این چهار فرمول به‌عنوان یک محدودهٔ مرجع کلی در نظر گرفته می‌شود؛ ترکیب بدن (نه فقط وزن) شاخص دقیق‌تری برای سلامت است.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">09</div><h2>مقایسهٔ روش‌های محاسبه</h2></div></div>
+      <div class="compare-table" id="formulaCompareTable"></div>
+      <p class="helper">اختلاف کوچک بین روش‌ها طبیعی است — هر فرمول مفروضات متفاوتی دارد. برای دقت بالاتر، DEXA یا BIA حرفه‌ای پیشنهاد می‌شود.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">10</div><h2>نقشهٔ ترکیب بدن</h2></div></div>
+
+      <div class="bar-row">
+        <div class="bar-head"><span class="b-name"><span class="swatch" style="background:linear-gradient(90deg,#ffb454,#ff5fb0);"></span>توده چربی</span><span class="b-val" id="fatMassBar">— kg</span></div>
+        <div class="bar-track"><div class="bar-fill" id="fatBar" style="background:linear-gradient(90deg,#ffb454,#ff5fb0); width:0%;"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span class="b-name"><span class="swatch" style="background:linear-gradient(90deg,#4beef0,#4be6a0);"></span>توده عضلانی اسکلتی</span><span class="b-val" id="muscleMassBar">— kg</span></div>
+        <div class="bar-track"><div class="bar-fill" id="muscleBar" style="background:linear-gradient(90deg,#4beef0,#4be6a0); width:0%;"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span class="b-name"><span class="swatch" style="background:linear-gradient(90deg,#8a6bff,#5f4ccf);"></span>توده استخوانی تخمینی</span><span class="b-val" id="boneMassBar">— kg</span></div>
+        <div class="bar-track"><div class="bar-fill" id="boneBar" style="background:linear-gradient(90deg,#8a6bff,#5f4ccf); width:0%;"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-head"><span class="b-name"><span class="swatch" style="background:linear-gradient(90deg,#3a7bd5,#4beef0);"></span>آب بدن تخمینی</span><span class="b-val" id="waterMassBar">— kg</span></div>
+        <div class="bar-track"><div class="bar-fill" id="waterBar" style="background:linear-gradient(90deg,#3a7bd5,#4beef0); width:0%;"></div></div>
+      </div>
+
+      <div class="compare-note" id="compareNote"></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head">
+        <div class="panel-head-left"><div class="panel-num">11</div><h2>روند پیشرفت</h2></div>
+      </div>
+      <div id="trendContent">
+        <div class="trend-empty">هنوز داده‌ای ذخیره نشده. با دکمهٔ زیر این اندازه‌گیری را ثبت کن تا روند تغییرات را در طول زمان ببینی.</div>
+      </div>
+      <button type="button" class="ghost-btn" id="saveHistoryBtn">ثبت این اندازه‌گیری در روند پیشرفت</button>
+      <button type="button" class="ghost-btn danger-ghost" id="clearHistoryBtn" style="display:none;">پاک‌کردن تاریخچه</button>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">12</div><h2>عکس روند تغییرات</h2></div></div>
+      <div class="photo-grid" id="photoGrid"></div>
+      <p class="helper">عکس‌ها فقط روی همین دستگاه ذخیره می‌شوند و به سرور ارسال نمی‌شوند. برای مقایسهٔ بهتر، هر بار با نور و زاویهٔ یکسان عکس بگیر.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">13</div><h2>تحلیل نتایج</h2></div></div>
+      <div class="ai-box" id="aiBox"></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">14</div><h2>یادآور اندازه‌گیری دوره‌ای</h2></div></div>
+      <div class="reminder-row">
+        <span style="font-size:13px; color:var(--text-dim); font-weight:600;">یادآوری هر ۷ روز یک‌بار</span>
+        <div class="toggle-switch" id="reminderToggle"><div class="knob"></div></div>
+      </div>
+      <div class="reminder-status" id="reminderStatus">برای فعال‌سازی، اجازهٔ اعلان مرورگر لازم است. این یادآور فقط زمانی کار می‌کند که این صفحه باز باشد.</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;" id="syncPanel">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">15</div><h2>کد همگام‌سازی بین دستگاه‌ها</h2></div></div>
+      <p class="helper" style="margin-top:0; margin-bottom:14px;">این کد کلید دسترسی به داده‌های توئه. برای دیدن همین پروفایل‌ها روی گوشی یا مرورگر دیگه، همین کد رو اونجا وارد کن.</p>
+      <div class="sync-code-box" id="syncCodeBox">—</div>
+      <div class="action-row">
+        <button type="button" class="ghost-btn" id="copySyncBtn">کپی کد</button>
+        <button type="button" class="ghost-btn" id="useSyncBtn">وارد کردن کد از دستگاه دیگر</button>
+      </div>
+      <div class="reminder-status" id="syncStatus"></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-head"><div class="panel-head-left"><div class="panel-num">16</div><h2>پشتیبان‌گیری و انتقال داده</h2></div></div>
+      <p class="helper" style="margin-top:0; margin-bottom:14px;">همهٔ پروفایل‌ها، تاریخچهٔ اندازه‌گیری و عکس‌ها را به یک فایل خروجی بگیر تا بتوانی روی دستگاه دیگری وارد کنی یا نسخهٔ پشتیبان نگه داری.</p>
+      <div class="action-row">
+        <button type="button" class="ghost-btn" id="exportBtn">خروجی گرفتن از داده‌ها (JSON)</button>
+        <button type="button" class="ghost-btn" id="importBtn">وارد کردن فایل پشتیبان</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json">
+      <div class="reminder-status" id="backupStatus"></div>
+    </div>
+
+    <button type="button" class="ghost-btn" id="printBtn"><span class="icon-inline">خروجی PDF / چاپ گزارش</span></button>
+
+  </div>
+
+  <footer>
+    این ابزار بر پایهٔ فرمول‌های استاندارد (WHO، US Navy، Deurenberg، Lee، Mifflin-St Jeor) عمل می‌کند و جایگزین ارزیابی پزشکی یا آزمایش‌های تخصصی (DEXA، BIA) نیست. داده‌های روند فقط روی همین دستگاه شما ذخیره می‌شوند.
+  </footer>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+(function(){
+  // ===== Remote storage adapter (Cloudflare Worker + D1) =====
+  // Set API_BASE to your deployed Worker URL to persist data to a real database
+  // instead of this-chat-only storage. Leave empty to keep using local storage.
+  const API_BASE = ""; // e.g. "https://orbit-backend.YOUR-SUBDOMAIN.workers.dev"
+
+  function getOwnerToken(){
+    let t = null;
+    try{ t = localStorage.getItem('orbit-owner-token'); } catch(e){}
+    if(!t){
+      t = 'tok_' + Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
+      try{ localStorage.setItem('orbit-owner-token', t); } catch(e){}
+    }
+    return t;
+  }
+
+  async function apiFetch(path, opts){
+    const res = await fetch(API_BASE + path, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'X-Owner-Token': getOwnerToken(), ...(opts && opts.headers) }
+    });
+    if(!res.ok){ throw new Error('API error ' + res.status); }
+    return res.json();
+  }
+
+  // Parses the local-style keys already used throughout this app
+  // ('profiles', 'currentProfileId', 'measurements:{pid}', 'photo:{pid}:{slot}',
+  // 'reminderEnabled:{pid}') and routes them to the matching REST endpoint.
+  const remoteStorage = {
+    async get(key){
+      if(key === 'profiles'){
+        const { profiles } = await apiFetch('/api/profiles');
+        return { key, value: JSON.stringify(profiles.map(p=>({id:p.id, name:p.name}))) };
+      }
+      if(key === 'currentProfileId'){
+        let v = null;
+        try{ v = localStorage.getItem('orbit-current-profile'); } catch(e){}
+        return v ? { key, value: v } : null;
+      }
+      let m;
+      if((m = key.match(/^measurements:(.+)$/))){
+        const { measurements } = await apiFetch(`/api/profiles/${m[1]}/measurements`);
+        return { key, value: JSON.stringify(measurements) };
+      }
+      if((m = key.match(/^photo:(.+):(front|side)$/))){
+        const { photo } = await apiFetch(`/api/profiles/${m[1]}/photos/${m[2]}`);
+        return photo ? { key, value: JSON.stringify(photo) } : null;
+      }
+      if((m = key.match(/^reminderEnabled:(.+)$/))){
+        const { value } = await apiFetch(`/api/profiles/${m[1]}/settings/reminderEnabled`);
+        return value !== null ? { key, value } : null;
+      }
+      return null;
+    },
+    async set(key, value){
+      if(key === 'profiles') return { key, value }; // profiles are created individually via addProfile()
+      if(key === 'currentProfileId'){
+        try{ localStorage.setItem('orbit-current-profile', value); } catch(e){}
+        return { key, value };
+      }
+      let m;
+      if((m = key.match(/^measurements:(.+)$/))){
+        // This app calls set() with the FULL array each time; only send the newest item
+        const arr = JSON.parse(value);
+        const latest = arr[arr.length-1];
+        if(latest){ await apiFetch(`/api/profiles/${m[1]}/measurements`, { method:'POST', body: JSON.stringify(latest) }); }
+        return { key, value };
+      }
+      if((m = key.match(/^photo:(.+):(front|side)$/))){
+        const parsed = JSON.parse(value);
+        await apiFetch(`/api/profiles/${m[1]}/photos/${m[2]}`, { method:'POST', body: JSON.stringify(parsed) });
+        return { key, value };
+      }
+      if((m = key.match(/^reminderEnabled:(.+)$/))){
+        await apiFetch(`/api/profiles/${m[1]}/settings/reminderEnabled`, { method:'POST', body: JSON.stringify({value}) });
+        return { key, value };
+      }
+      return { key, value };
+    },
+    async delete(key){
+      let m;
+      if((m = key.match(/^measurements:(.+)$/))){
+        await apiFetch(`/api/profiles/${m[1]}/measurements`, { method:'DELETE' });
+        return { key, deleted:true };
+      }
+      if((m = key.match(/^photo:(.+):(front|side)$/))){
+        await apiFetch(`/api/profiles/${m[1]}/photos/${m[2]}`, { method:'DELETE' });
+        return { key, deleted:true };
+      }
+      return { key, deleted:true };
+    },
+    async list(prefix){ return { keys: [] }; }
+  };
+
+  async function addProfileRemote(id, name){
+    return apiFetch('/api/profiles', { method:'POST', body: JSON.stringify({id, name}) });
+  }
+  async function deleteProfileRemote(id){
+    return apiFetch(`/api/profiles/${id}`, { method:'DELETE' });
+  }
+
+  if(API_BASE){
+    window.storage = remoteStorage;
+    window.__orbitRemote = { addProfile: addProfileRemote, deleteProfile: deleteProfileRemote, apiFetch, getOwnerToken };
+  }
+
+  // ===== Starfield canvas =====
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const count = Math.floor((canvas.width*canvas.height)/9000);
+    stars = Array.from({length: count}, ()=>({
+      x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+      r: Math.random()*1.3 + 0.3, s: Math.random()*0.015 + 0.003, p: Math.random()*Math.PI*2,
+      hue: Math.random() < 0.15 ? (Math.random()<0.5 ? '75,238,240' : '138,107,255') : '255,255,255'
+    }));
+  }
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function currentStarOpacity(){
+    return getComputedStyle(document.documentElement).getPropertyValue('--star-opacity').trim() || '1';
+  }
+  function draw(t){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const globalOpacity = parseFloat(currentStarOpacity()) || 1;
+    for(const st of stars){
+      const tw = (reduceMotion ? 0.7 : (Math.sin(t*st.s + st.p)*0.35 + 0.65)) * globalOpacity;
+      ctx.beginPath(); ctx.fillStyle = `rgba(${st.hue},${tw})`;
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI*2); ctx.fill();
+    }
+    if(!reduceMotion) requestAnimationFrame(draw);
+  }
+  resize(); window.addEventListener('resize', resize); draw(0);
+
+  // ===== Theme (light/dark) =====
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(theme){
+    if(theme === 'light'){
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeIcon.textContent = '☀️';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      themeIcon.textContent = '🌙';
+    }
+    if(reduceMotion) draw(0);
+  }
+  let savedTheme = 'dark';
+  try{ savedTheme = localStorage.getItem('orbit-theme') || 'dark'; } catch(e){}
+  applyTheme(savedTheme);
+  themeToggle.addEventListener('click', ()=>{
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const next = isLight ? 'dark' : 'light';
+    applyTheme(next);
+    try{ localStorage.setItem('orbit-theme', next); } catch(e){}
+  });
+
+  // ===== App state =====
+  let gender = 'male';
+  let method = 'navy';
+  let goal = 'maintain';
+  let lastResult = null;
+  let currentProfileId = 'default';
+  let profiles = [{id:'default', name:'من'}];
+
+  const genderSeg = document.getElementById('genderSeg');
+  const methodSeg = document.getElementById('methodSeg');
+  const navyFields = document.getElementById('navyFields');
+  const hipField = document.getElementById('hipField');
+  const deurenbergHelper = document.getElementById('deurenbergHelper');
+  const computeBtn = document.getElementById('computeBtn');
+  const results = document.getElementById('results');
+  const saveHistoryBtn = document.getElementById('saveHistoryBtn');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+  genderSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    gender = btn.dataset.val;
+    [...genderSeg.children].forEach(b=>b.classList.toggle('active', b===btn));
+    hipField.style.display = (gender==='female' && method==='navy') ? 'block' : 'none';
+    validate(); if(results.classList.contains('show')) setRecalcState();
+  });
+
+  methodSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    method = btn.dataset.val;
+    [...methodSeg.children].forEach(b=>b.classList.toggle('active', b===btn));
+    navyFields.classList.toggle('show', method==='navy');
+    deurenbergHelper.style.display = method==='deurenberg' ? 'block' : 'none';
+    hipField.style.display = (gender==='female' && method==='navy') ? 'block' : 'none';
+    validate(); if(results.classList.contains('show')) setRecalcState();
+  });
+
+  const ids = ['age','height','weight','neck','waist','hip'];
+  ids.forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      validate(); if(results.classList.contains('show')) setRecalcState();
+    });
+  });
+  document.getElementById('activity').addEventListener('change', ()=>{
+    if(results.classList.contains('show')) setRecalcState();
+  });
+
+  const goalSeg = document.getElementById('goalSeg');
+  goalSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    goal = btn.dataset.val;
+    [...goalSeg.children].forEach(b=>b.classList.toggle('active', b===btn));
+    if(lastResult) { renderMacros(); renderWorkoutPlan(); renderAnalysis(); }
+  });
+
+  function setRecalcState(){ computeBtn.querySelector('span').textContent = 'محاسبه مجدد'; }
+
+  function num(id){ const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+
+  function validate(){
+    const age = num('age'), height = num('height'), weight = num('weight');
+    let ok = age && height && weight && age>0 && height>0 && weight>0;
+    if(method === 'navy'){
+      const neck = num('neck'), waist = num('waist');
+      ok = ok && neck && waist && neck>0 && waist>0;
+      if(gender === 'female'){ const hip = num('hip'); ok = ok && hip && hip>0; }
+    }
+    computeBtn.classList.toggle('disabled', !ok);
+  }
+
+  computeBtn.addEventListener('click', compute);
+
+  function bmiCategory(bmi){
+    if(bmi < 18.5) return {label:'کمبود وزن', cls:'warn'};
+    if(bmi < 25) return {label:'وزن طبیعی', cls:'ok'};
+    if(bmi < 30) return {label:'اضافه وزن', cls:'warn'};
+    return {label:'چاقی', cls:'danger'};
+  }
+
+  function bodyFatCategory(bf, gender){
+    const ranges = gender==='male'
+      ? [[0,6,'چربی ضروری'],[6,14,'ورزشکار'],[14,18,'تناسب خوب'],[18,25,'میانگین'],[25,100,'بالای حد طبیعی']]
+      : [[0,14,'چربی ضروری'],[14,21,'ورزشکار'],[21,25,'تناسب خوب'],[25,32,'میانگین'],[32,100,'بالای حد طبیعی']];
+    for(const [lo,hi,label] of ranges){ if(bf>=lo && bf<hi) return label; }
+    return '—';
+  }
+
+  function whtrCategory(whtr, gender){
+    if(whtr < 0.4) return {label:'پایین‌تر از حد', cls:'warn'};
+    if(whtr < 0.5) return {label:'سالم', cls:'ok'};
+    if(whtr < 0.6) return {label:'خطر متوسط', cls:'warn'};
+    return {label:'خطر بالا', cls:'danger'};
+  }
+
+  function compute(){
+    computeBtn.querySelector('span').textContent = 'محاسبه دقیق';
+    const age = num('age'), heightCm = num('height'), weight = num('weight');
+    const heightM = heightCm/100;
+    const activityFactor = parseFloat(document.getElementById('activity').value);
+
+    const bmi = weight / (heightM*heightM);
+
+    let bodyFatPct, bfNote, waist=null;
+    if(method === 'navy'){
+      const neck = num('neck'); waist = num('waist');
+      if(gender === 'male'){
+        bodyFatPct = 495/(1.0324 - 0.19077*Math.log10(waist-neck) + 0.15456*Math.log10(heightCm)) - 450;
+        bfNote = 'فرمول US Navy (مرد)';
+      } else {
+        const hip = num('hip');
+        bodyFatPct = 495/(1.29579 - 0.35004*Math.log10(waist+hip-neck) + 0.22100*Math.log10(heightCm)) - 450;
+        bfNote = 'فرمول US Navy (زن)';
+      }
+    } else {
+      const sexVal = gender==='male' ? 1 : 0;
+      bodyFatPct = (1.20*bmi) + (0.23*age) - (10.8*sexVal) - 5.4;
+      bfNote = 'فرمول Deurenberg';
+    }
+    bodyFatPct = Math.max(3, Math.min(60, bodyFatPct));
+
+    const fatMass = weight * (bodyFatPct/100);
+    const leanMass = weight - fatMass;
+
+    const sexLee = gender==='male' ? 1 : 0;
+    let muscleMass = 0.244*weight + 7.80*heightM - 0.098*age + 6.6*sexLee - 3.3;
+    muscleMass = Math.max(weight*0.15, Math.min(weight*0.6, muscleMass));
+
+    let boneMass = leanMass * (gender==='male' ? 0.146 : 0.129);
+
+    let bodyWater;
+    if(gender==='male'){ bodyWater = 2.447 - (0.09156*age) + (0.1074*heightCm) + (0.3362*weight); }
+    else { bodyWater = -2.097 + (0.1069*heightCm) + (0.2466*weight); }
+    bodyWater = Math.max(weight*0.35, Math.min(weight*0.7, bodyWater));
+
+    // BMR: Mifflin-St Jeor
+    let bmr;
+    if(gender==='male'){ bmr = (10*weight) + (6.25*heightCm) - (5*age) + 5; }
+    else { bmr = (10*weight) + (6.25*heightCm) - (5*age) - 161; }
+
+    // BMR cross-check: Katch-McArdle (uses actual lean mass from body-fat measurement)
+    const bmrKatch = 370 + (21.6 * leanMass);
+
+    // Harris-Benedict cross-check
+    let bmrHarris;
+    if(gender==='male'){ bmrHarris = 88.362 + (13.397*weight) + (4.799*heightCm) - (5.677*age); }
+    else { bmrHarris = 447.593 + (9.247*weight) + (3.098*heightCm) - (4.330*age); }
+
+    const tdee = bmr * activityFactor;
+    const calLose = tdee - 500;
+    const calGain = tdee + 500;
+
+    // WHtR
+    let whtr = null;
+    if(waist !== null){ whtr = waist / heightCm; }
+
+    // Ideal body weight — multiple reference formulas (height in inches over 5ft baseline)
+    const heightIn = heightCm / 2.54;
+    const inchesOver5ft = Math.max(0, heightIn - 60);
+    let idealDevine, idealRobinson, idealHamwi, idealMiller;
+    if(gender === 'male'){
+      idealDevine = 50 + 2.3*inchesOver5ft;
+      idealRobinson = 52 + 1.9*inchesOver5ft;
+      idealHamwi = 48 + 2.7*inchesOver5ft;
+      idealMiller = 56.2 + 1.41*inchesOver5ft;
+    } else {
+      idealDevine = 45.5 + 2.3*inchesOver5ft;
+      idealRobinson = 49 + 1.7*inchesOver5ft;
+      idealHamwi = 45.5 + 2.2*inchesOver5ft;
+      idealMiller = 53.1 + 1.36*inchesOver5ft;
+    }
+    const idealAvg = (idealDevine + idealRobinson + idealHamwi + idealMiller) / 4;
+
+    // Body fat cross-check via BMI-based (Deurenberg) even when Navy method is primary
+    let bodyFatCrossCheck = null, crossCheckLabel = '';
+    if(method === 'navy'){
+      const sexVal = gender==='male' ? 1 : 0;
+      bodyFatCrossCheck = Math.max(3, Math.min(60, (1.20*bmi) + (0.23*age) - (10.8*sexVal) - 5.4));
+      crossCheckLabel = 'Deurenberg (بر پایهٔ BMI)';
+    } else if(waist !== null){
+      const neck = num('neck');
+      if(gender === 'male'){
+        bodyFatCrossCheck = Math.max(3, Math.min(60, 495/(1.0324 - 0.19077*Math.log10(waist-neck) + 0.15456*Math.log10(heightCm)) - 450));
+      } else {
+        const hip = num('hip');
+        bodyFatCrossCheck = Math.max(3, Math.min(60, 495/(1.29579 - 0.35004*Math.log10(waist+hip-neck) + 0.22100*Math.log10(heightCm)) - 450));
+      }
+      crossCheckLabel = 'US Navy';
+    }
+
+    // ===== RENDER =====
+    document.getElementById('bmiValue').innerHTML = bmi.toFixed(1) + '<sup>kg/m²</sup>';
+    const bc = bmiCategory(bmi);
+    const bmiTag = document.getElementById('bmiTag');
+    bmiTag.textContent = bc.label; bmiTag.className = 'rh-tag ' + bc.cls;
+
+    const clampedBmi = Math.max(15, Math.min(42, bmi));
+    const pct = 100 - ((clampedBmi-15)/(42-15))*100;
+    document.getElementById('bmiMarker').style.right = pct + '%';
+
+    document.getElementById('bfValue').innerHTML = bodyFatPct.toFixed(1) + '<small>٪</small>';
+    document.getElementById('bfMethodNote').textContent = bfNote + ' · ' + bodyFatCategory(bodyFatPct, gender);
+
+    document.getElementById('muscleValue').innerHTML = muscleMass.toFixed(1) + '<small>kg</small>';
+
+    document.getElementById('bmrValue').innerHTML = Math.round(bmr) + '<small>kcal</small>';
+
+    if(whtr !== null){
+      document.getElementById('whtrValue').textContent = whtr.toFixed(2);
+      const wc = whtrCategory(whtr, gender);
+      document.getElementById('whtrNote').textContent = wc.label;
+    } else {
+      document.getElementById('whtrValue').textContent = '—';
+      document.getElementById('whtrNote').textContent = 'نیاز به دور کمر';
+    }
+
+    document.getElementById('calLose').innerHTML = Math.round(calLose).toLocaleString() + '<small> kcal</small>';
+    document.getElementById('calMaintain').innerHTML = Math.round(tdee).toLocaleString() + '<small> kcal</small>';
+    document.getElementById('calGain').innerHTML = Math.round(calGain).toLocaleString() + '<small> kcal</small>';
+    document.getElementById('calTdee').innerHTML = Math.round(bmr).toLocaleString() + '<small> kcal</small>';
+
+    document.getElementById('fatMassBar').textContent = fatMass.toFixed(1) + ' kg';
+    document.getElementById('muscleMassBar').textContent = muscleMass.toFixed(1) + ' kg';
+    document.getElementById('boneMassBar').textContent = boneMass.toFixed(1) + ' kg';
+    document.getElementById('waterMassBar').textContent = bodyWater.toFixed(1) + ' kg';
+
+    document.getElementById('fatBar').style.width = Math.min(100,(fatMass/weight*100)) + '%';
+    document.getElementById('muscleBar').style.width = Math.min(100,(muscleMass/weight*100)) + '%';
+    document.getElementById('boneBar').style.width = Math.min(100,(boneMass/weight*100)) + '%';
+    document.getElementById('waterBar').style.width = Math.min(100,(bodyWater/weight*100)) + '%';
+
+    document.getElementById('compareNote').innerHTML =
+      `از وزن کل <b>${weight.toFixed(1)} کیلوگرم</b>، حدود <b>${fatMass.toFixed(1)} کیلوگرم</b> چربی و <b>${leanMass.toFixed(1)} کیلوگرم</b> توده بدون چربی تشکیل شده است.`;
+
+    lastResult = {
+      date: new Date().toISOString(), weight, bmi, bodyFatPct, muscleMass, age, gender, tdee, bmr, activityFactor,
+      idealDevine, idealRobinson, idealHamwi, idealMiller, idealAvg,
+      bmrKatch, bmrHarris, bodyFatCrossCheck, crossCheckLabel, bfNote, fatMass, leanMass, boneMass, bodyWater, whtr
+    };
+
+    results.classList.add('show');
+    results.scrollIntoView({behavior:'smooth', block:'start'});
+    renderHistory();
+    renderMacros();
+    renderPopulationComparison();
+    renderWorkoutPlan();
+    renderAnalysis();
+    renderIdealWeight();
+    renderFormulaComparison();
+  }
+
+  // ===== Ideal weight (reference formulas) =====
+  function renderIdealWeight(){
+    if(!lastResult) return;
+    const { idealDevine, idealRobinson, idealHamwi, idealMiller, idealAvg, weight } = lastResult;
+    const grid = document.getElementById('idealWeightGrid');
+    const rows = [
+      ['Devine (۱۹۷۴)', idealDevine],
+      ['Robinson (۱۹۸۳)', idealRobinson],
+      ['Hamwi (۱۹۶۴)', idealHamwi],
+      ['Miller (۱۹۸۳)', idealMiller],
+    ];
+    grid.innerHTML = rows.map(([label, val])=>`
+      <div class="ideal-card">
+        <div class="iw-label">${label}</div>
+        <div class="iw-value">${val.toFixed(1)}<small> kg</small></div>
+      </div>
+    `).join('') + `
+      <div class="ideal-avg-band" style="grid-column: 1 / -1;">
+        <div class="ia-label">میانگین چهار روش</div>
+        <div class="ia-value">${idealAvg.toFixed(1)} kg</div>
+        <div class="ia-diff">${
+          Math.abs(weight-idealAvg) < 2
+            ? 'وزن فعلی‌ت تقریباً با این محدوده هم‌خوانی داره.'
+            : (weight > idealAvg
+                ? `حدود ${(weight-idealAvg).toFixed(1)} کیلوگرم بالاتر از این میانگین.`
+                : `حدود ${(idealAvg-weight).toFixed(1)} کیلوگرم پایین‌تر از این میانگین.`)
+        }</div>
+      </div>
+    `;
+  }
+
+  // ===== Formula comparison table =====
+  function renderFormulaComparison(){
+    if(!lastResult) return;
+    const { bodyFatPct, bfNote, bodyFatCrossCheck, crossCheckLabel, bmr, bmrKatch, bmrHarris } = lastResult;
+    const table = document.getElementById('formulaCompareTable');
+
+    let rows = `
+      <div class="ct-row primary"><span class="ct-method">${bfNote}</span><span class="ct-val">${bodyFatPct.toFixed(1)}٪</span></div>
+    `;
+    if(bodyFatCrossCheck !== null){
+      rows += `<div class="ct-row"><span class="ct-method">${crossCheckLabel} (تطبیقی)</span><span class="ct-val">${bodyFatCrossCheck.toFixed(1)}٪</span></div>`;
+    }
+    rows += `
+      <div class="ct-row primary" style="margin-top:6px;"><span class="ct-method">Mifflin-St Jeor (BMR)</span><span class="ct-val">${Math.round(bmr)} kcal</span></div>
+      <div class="ct-row"><span class="ct-method">Katch-McArdle (بر پایهٔ توده بدون چربی)</span><span class="ct-val">${Math.round(bmrKatch)} kcal</span></div>
+      <div class="ct-row"><span class="ct-method">Harris-Benedict (بازبینی‌شده)</span><span class="ct-val">${Math.round(bmrHarris)} kcal</span></div>
+    `;
+    table.innerHTML = rows;
+  }
+
+  // ===== Macronutrients =====
+  function renderMacros(){
+    if(!lastResult) return;
+    const { weight, tdee } = lastResult;
+    let targetCal, proteinPerKg, fatPct, note;
+    if(goal === 'lose'){
+      targetCal = tdee - 500; proteinPerKg = 2.0; fatPct = 0.30;
+      note = 'پروتئین بالا برای حفظ عضله در کسری کالری، چربی متعادل، باقی کربوهیدرات.';
+    } else if(goal === 'gain'){
+      targetCal = tdee + 350; proteinPerKg = 1.8; fatPct = 0.25;
+      note = 'مازاد کالری متوسط برای عضله‌سازی با حداقل افزایش چربی بدن.';
+    } else {
+      targetCal = tdee; proteinPerKg = 1.6; fatPct = 0.28;
+      note = 'توزیع متعادل برای حفظ وزن و ترکیب بدن فعلی.';
+    }
+    targetCal = Math.max(1200, targetCal);
+    const proteinG = proteinPerKg * weight;
+    const proteinCal = proteinG * 4;
+    const fatCal = targetCal * fatPct;
+    const fatG = fatCal / 9;
+    const carbCal = Math.max(0, targetCal - proteinCal - fatCal);
+    const carbG = carbCal / 4;
+
+    document.getElementById('macroProtein').innerHTML = Math.round(proteinG) + '<small>g</small>';
+    document.getElementById('macroProteinCal').textContent = Math.round(proteinCal) + ' kcal';
+    document.getElementById('macroCarb').innerHTML = Math.round(carbG) + '<small>g</small>';
+    document.getElementById('macroCarbCal').textContent = Math.round(carbCal) + ' kcal';
+    document.getElementById('macroFat').innerHTML = Math.round(fatG) + '<small>g</small>';
+    document.getElementById('macroFatCal').textContent = Math.round(fatCal) + ' kcal';
+    document.getElementById('macroGoalNote').textContent = note + ` (هدف کالری روزانه: ${Math.round(targetCal).toLocaleString()} kcal)`;
+  }
+
+  // ===== Workout plan =====
+  function renderWorkoutPlan(){
+    if(!lastResult) return;
+    const { activityFactor } = lastResult;
+    const experience = activityFactor >= 1.725 ? 'advanced' : activityFactor >= 1.55 ? 'intermediate' : 'beginner';
+
+    let plan;
+    if(goal === 'lose'){
+      plan = [
+        {name:'روز ۱ — تمرین ترکیبی بالاتنه', tag:'قدرتی + کاردیو', items:['پرس سینه یا شنا — ۳ ست ۱۰-۱۲ تکرار','زیربغل قایقی — ۳ ست ۱۲ تکرار','کاردیو تناوبی (HIIT) — ۱۵ دقیقه']},
+        {name:'روز ۲ — پایین‌تنه + متابولیک', tag:'قدرتی + کاردیو', items:['اسکوات — ۳ ست ۱۲ تکرار','لانگ — ۳ ست ۱۰ تکرار هر پا','طناب زدن یا دوچرخه — ۱۵ دقیقه']},
+        {name:'روز ۳ — کاردیو پیوسته', tag:'استقامتی', items:['پیاده‌روی تند یا دوی سبک — ۳۰-۴۰ دقیقه','کشش کامل بدن — ۱۰ دقیقه']},
+        {name:'روز ۴ — تمام بدن + کور', tag:'قدرتی', items:['ددلیفت رومانیایی — ۳ ست ۱۰ تکرار','پلانک — ۳ ست ۴۵ ثانیه','کول‌داون کاردیو — ۱۰ دقیقه']},
+      ];
+    } else if(goal === 'gain'){
+      plan = [
+        {name:'روز ۱ — سینه و پشت بازو', tag:'حجمی', items:['پرس سینه هالتر — ۴ ست ۸ تکرار','پرس بالاسینه دمبل — ۳ ست ۱۰ تکرار','پشت بازو سیم‌کش — ۳ ست ۱۲ تکرار']},
+        {name:'روز ۲ — پشت و جلوبازو', tag:'حجمی', items:['ددلیفت — ۴ ست ۶ تکرار','زیربغل هالتر خم — ۳ ست ۸ تکرار','جلوبازو دمبل — ۳ ست ۱۲ تکرار']},
+        {name:'روز ۳ — استراحت فعال', tag:'ریکاوری', items:['پیاده‌روی سبک — ۲۰ دقیقه','کشش و فوم رولر — ۱۵ دقیقه']},
+        {name:'روز ۴ — پا و شانه', tag:'حجمی', items:['اسکوات هالتر — ۴ ست ۸ تکرار','پرس شانه — ۳ ست ۱۰ تکرار','ساق پا ایستاده — ۳ ست ۱۵ تکرار']},
+        {name:'روز ۵ — تمام بدن سنگین', tag:'قدرتی', items:['ددلیفت سومو — ۳ ست ۶ تکرار','پرس سینه — ۳ ست ۶ تکرار','بارفیکس یا لت — ۳ ست حداکثر تکرار']},
+      ];
+    } else {
+      plan = [
+        {name:'روز ۱ — تمام بدن A', tag:'حفظ تناسب', items:['اسکوات — ۳ ست ۱۰ تکرار','پرس سینه — ۳ ست ۱۰ تکرار','زیربغل — ۳ ست ۱۰ تکرار']},
+        {name:'روز ۲ — کاردیو متعادل', tag:'قلبی-عروقی', items:['دویدن سبک یا دوچرخه — ۲۵ دقیقه','کشش کامل — ۱۰ دقیقه']},
+        {name:'روز ۳ — تمام بدن B', tag:'حفظ تناسب', items:['لانگ — ۳ ست ۱۲ تکرار','پرس شانه — ۳ ست ۱۰ تکرار','پلانک — ۳ ست ۳۰ ثانیه']},
+      ];
+    }
+
+    if(experience === 'beginner'){
+      plan = plan.map(d => ({...d, items: d.items.map(it => it.replace(/۴ ست/, '۳ ست'))}));
+    }
+
+    const wrap = document.getElementById('workoutContent');
+    wrap.innerHTML = plan.map(d => `
+      <div class="workout-day">
+        <div class="wd-head"><span class="wd-name">${d.name}</span><span class="wd-tag">${d.tag}</span></div>
+        <div class="wd-list">${d.items.map(it=>`<div class="wd-item">${it}</div>`).join('')}</div>
+      </div>
+    `).join('');
+  }
+
+  // ===== Population comparison =====
+  // Approximate reference means (illustrative, general adult population)
+  function popFatMean(age, gender){
+    const base = gender==='male' ? 20 : 30;
+    const ageAdj = Math.max(0, age-25) * 0.12;
+    return base + ageAdj;
+  }
+  function popBmiMean(){ return 25.5; }
+
+  function renderPopulationComparison(){
+    if(!lastResult) return;
+    const { bodyFatPct, bmi, age, gender } = lastResult;
+
+    const fatMean = popFatMean(age, gender);
+    const fatSd = 6;
+    const fatDiffPct = Math.round(((bodyFatPct - fatMean) / fatMean) * 100);
+    const fatMarkerPct = Math.max(2, Math.min(98, 50 + ((bodyFatPct-fatMean)/(fatSd*3))*50));
+    document.getElementById('pcFatMarker').style.right = fatMarkerPct + '%';
+    document.getElementById('pcFatLabel').textContent = bodyFatPct.toFixed(1) + '٪';
+    document.getElementById('pcFatPct').textContent = (fatDiffPct>=0?'+':'') + fatDiffPct + '٪ نسبت به میانگین';
+    document.getElementById('pcFatAvgLabel').textContent = `میانگین جمعیت هم‌سن و هم‌جنس: تقریباً ${fatMean.toFixed(1)}٪`;
+
+    const bmiMean = popBmiMean();
+    const bmiSd = 4.5;
+    const bmiDiffPct = Math.round(((bmi - bmiMean) / bmiMean) * 100);
+    const bmiMarkerPct = Math.max(2, Math.min(98, 50 + ((bmi-bmiMean)/(bmiSd*3))*50));
+    document.getElementById('pcBmiMarker').style.right = bmiMarkerPct + '%';
+    document.getElementById('pcBmiLabel').textContent = bmi.toFixed(1);
+    document.getElementById('pcBmiPct').textContent = (bmiDiffPct>=0?'+':'') + bmiDiffPct + '٪ نسبت به میانگین';
+    document.getElementById('pcBmiAvgLabel').textContent = `میانگین جمعیت بزرگسال: تقریباً ${bmiMean.toFixed(1)}`;
+  }
+
+  // ===== History / Trend (persistent storage, per profile) =====
+  function historyKey(){ return 'measurements:' + currentProfileId; }
+
+  async function getHistory(){
+    try{
+      const res = await window.storage.get(historyKey());
+      if(res && res.value) return JSON.parse(res.value);
+      return [];
+    } catch(e){ return []; }
+  }
+
+  async function saveMeasurement(){
+    if(!lastResult) return;
+    try{
+      const history = await getHistory();
+      history.push(lastResult);
+      history.sort((a,b)=> new Date(a.date) - new Date(b.date));
+      const trimmed = history.slice(-30);
+      await window.storage.set(historyKey(), JSON.stringify(trimmed));
+      await renderHistory();
+      saveHistoryBtn.textContent = 'ثبت شد ✓';
+      setTimeout(()=>{ saveHistoryBtn.textContent = 'ثبت این اندازه‌گیری در روند پیشرفت'; }, 1800);
+    } catch(e){
+      saveHistoryBtn.textContent = 'خطا در ذخیره‌سازی';
+      setTimeout(()=>{ saveHistoryBtn.textContent = 'ثبت این اندازه‌گیری در روند پیشرفت'; }, 1800);
+    }
+  }
+
+  async function clearHistory(){
+    try{
+      await window.storage.delete(historyKey());
+    } catch(e){}
+    await renderHistory();
+  }
+
+  // ===== Profiles =====
+  async function loadProfiles(){
+    try{
+      const res = await window.storage.get('profiles');
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        if(Array.isArray(parsed) && parsed.length) profiles = parsed;
+        else if(window.__orbitRemote){
+          // First-ever run on this device with remote storage: create the default profile server-side
+          await window.__orbitRemote.addProfile(profiles[0].id, profiles[0].name);
+        }
+      }
+    } catch(e){}
+    try{
+      const cur = await window.storage.get('currentProfileId');
+      if(cur && cur.value) currentProfileId = cur.value;
+    } catch(e){}
+    if(!profiles.find(p=>p.id===currentProfileId)) currentProfileId = profiles[0].id;
+    renderProfileBar();
+  }
+
+  async function persistProfiles(){
+    if(window.__orbitRemote){ return; } // remote profiles are created individually via addProfileRemote
+    try{ await window.storage.set('profiles', JSON.stringify(profiles)); } catch(e){}
+  }
+
+  async function setCurrentProfile(id){
+    currentProfileId = id;
+    try{ await window.storage.set('currentProfileId', id); } catch(e){}
+    renderProfileBar();
+    results.classList.remove('show');
+    computeBtn.querySelector('span').textContent = 'محاسبه دقیق';
+    await renderHistory();
+    await renderPhotos();
+  }
+
+  function renderProfileBar(){
+    const bar = document.getElementById('profileBar');
+    bar.innerHTML = '';
+    profiles.forEach(p=>{
+      const chip = document.createElement('div');
+      chip.className = 'profile-chip' + (p.id===currentProfileId ? ' active' : '');
+      chip.innerHTML = `<span class="p-dot"></span><span>${escapeHtml(p.name)}</span>`;
+      chip.addEventListener('click', ()=> setCurrentProfile(p.id));
+      bar.appendChild(chip);
+    });
+    const addChip = document.createElement('div');
+    addChip.className = 'profile-chip add-chip';
+    addChip.innerHTML = '<span>+ افزودن نفر</span>';
+    addChip.addEventListener('click', openAddProfileModal);
+    bar.appendChild(addChip);
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+
+  function openAddProfileModal(){
+    const root = document.getElementById('modalRoot');
+    root.innerHTML = `
+      <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal-box">
+          <h3>افزودن پروفایل جدید</h3>
+          <input type="text" id="newProfileName" placeholder="مثلاً: برادرم، همسرم..." maxlength="20" style="margin-bottom:4px;">
+          <div class="modal-actions">
+            <button type="button" class="ghost-btn" id="cancelProfileBtn">انصراف</button>
+            <button type="button" class="compute-btn" id="confirmProfileBtn" style="padding:12px;"><span>افزودن</span></button>
+          </div>
+        </div>
+      </div>`;
+    const backdrop = document.getElementById('modalBackdrop');
+    const input = document.getElementById('newProfileName');
+    input.focus();
+    document.getElementById('cancelProfileBtn').addEventListener('click', ()=> root.innerHTML = '');
+    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) root.innerHTML = ''; });
+    document.getElementById('confirmProfileBtn').addEventListener('click', async ()=>{
+      const name = input.value.trim() || 'کاربر جدید';
+      const id = 'p_' + Date.now();
+      if(window.__orbitRemote){
+        try{ await window.__orbitRemote.addProfile(id, name); } catch(e){}
+      }
+      profiles.push({id, name});
+      await persistProfiles();
+      root.innerHTML = '';
+      await setCurrentProfile(id);
+    });
+  }
+
+  saveHistoryBtn.addEventListener('click', saveMeasurement);
+  clearHistoryBtn.addEventListener('click', clearHistory);
+
+  function fmtDate(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString('fa-IR', { month:'short', day:'numeric' });
+  }
+
+  async function renderHistory(){
+    const history = await getHistory();
+    const trendContent = document.getElementById('trendContent');
+    clearHistoryBtn.style.display = history.length ? 'block' : 'none';
+
+    if(history.length < 2){
+      trendContent.innerHTML = history.length === 1
+        ? '<div class="trend-empty">یک اندازه‌گیری ثبت شده. یک بار دیگر در آینده ثبت کن تا نمودار روند نمایش داده شود.</div>'
+        : '<div class="trend-empty">هنوز داده‌ای ذخیره نشده. با دکمهٔ زیر این اندازه‌گیری را ثبت کن تا روند تغییرات را در طول زمان ببینی.</div>';
+      if(history.length === 1){
+        trendContent.innerHTML += renderHistoryListHTML(history);
+      }
+      return;
+    }
+
+    trendContent.innerHTML = `
+      <div class="trend-wrap"><canvas id="trendCanvas"></canvas></div>
+      <div class="trend-legend">
+        <span><span class="sw" style="background:linear-gradient(90deg,#ffb454,#ff5fb0);"></span>درصد چربی</span>
+        <span><span class="sw" style="background:linear-gradient(90deg,#4beef0,#4be6a0);"></span>وزن (kg)</span>
+      </div>
+    ` + renderHistoryListHTML(history);
+
+    drawTrendChart(history);
+  }
+
+  function renderHistoryListHTML(history){
+    const recent = [...history].reverse().slice(0,5);
+    let html = '<div class="history-list">';
+    for(const h of recent){
+      html += `<div class="history-item">
+        <span class="h-date">${fmtDate(h.date)}</span>
+        <span class="h-stats"><b>${h.weight.toFixed(1)}</b>kg <b>${h.bodyFatPct.toFixed(1)}</b>٪</span>
+      </div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function drawTrendChart(history){
+    const canvas = document.getElementById('trendCanvas');
+    if(!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 280;
+    const h = 150;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    const c = canvas.getContext('2d');
+    c.scale(dpr, dpr);
+    c.clearRect(0,0,w,h);
+
+    const pad = {top:14, right:10, bottom:22, left:10};
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    const weights = history.map(d=>d.weight);
+    const fats = history.map(d=>d.bodyFatPct);
+
+    function scale(arr, val, invert){
+      const min = Math.min(...arr), max = Math.max(...arr);
+      const range = (max-min) || 1;
+      const norm = (val-min)/range;
+      return pad.top + plotH - (norm*plotH);
+    }
+
+    function pathFor(arr){
+      return arr.map((v,i)=>{
+        const x = pad.left + (i/(arr.length-1))*plotW;
+        const y = scale(arr, v);
+        return [x,y];
+      });
+    }
+
+    function drawLine(points, colorA, colorB){
+      const grad = c.createLinearGradient(0,0,w,0);
+      grad.addColorStop(0, colorA); grad.addColorStop(1, colorB);
+      c.beginPath();
+      points.forEach(([x,y], i)=> i===0 ? c.moveTo(x,y) : c.lineTo(x,y));
+      c.strokeStyle = grad; c.lineWidth = 2.5; c.lineJoin='round'; c.lineCap='round';
+      c.stroke();
+      points.forEach(([x,y])=>{
+        c.beginPath(); c.arc(x,y,3.2,0,Math.PI*2);
+        c.fillStyle = colorB; c.fill();
+      });
+    }
+
+    const fatPoints = pathFor(fats);
+    const weightPoints = pathFor(weights);
+
+    drawLine(weightPoints, '#4beef0', '#4be6a0');
+    drawLine(fatPoints, '#ffb454', '#ff5fb0');
+
+    c.fillStyle = 'rgba(238,241,255,0.36)';
+    c.font = '10.5px Vazirmatn, sans-serif';
+    c.textAlign = 'center';
+    const step = Math.max(1, Math.floor(history.length/4));
+    history.forEach((d,i)=>{
+      if(i % step === 0 || i === history.length-1){
+        const x = pad.left + (i/(history.length-1))*plotW;
+        c.fillText(fmtDate(d.date), x, h-4);
+      }
+    });
+  }
+
+  document.getElementById('printBtn').addEventListener('click', ()=>{ window.print(); });
+
+  // ===== Progress photos =====
+  const PHOTO_SLOTS = [
+    {key:'front', label:'نمای روبرو'},
+    {key:'side', label:'نمای جانبی'}
+  ];
+
+  function photoKey(slotKey){ return 'photo:' + currentProfileId + ':' + slotKey; }
+
+  async function getPhoto(slotKey){
+    try{
+      const res = await window.storage.get(photoKey(slotKey));
+      if(res && res.value) return JSON.parse(res.value);
+      return null;
+    } catch(e){ return null; }
+  }
+
+  async function setPhoto(slotKey, dataUrl){
+    try{
+      await window.storage.set(photoKey(slotKey), JSON.stringify({dataUrl, date: new Date().toISOString()}));
+    } catch(e){}
+  }
+
+  async function deletePhoto(slotKey){
+    try{ await window.storage.delete(photoKey(slotKey)); } catch(e){}
+  }
+
+  function resizeImage(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          const maxDim = 700;
+          let { width, height } = img;
+          if(width > height && width > maxDim){ height = height*(maxDim/width); width = maxDim; }
+          else if(height > maxDim){ width = width*(maxDim/height); height = maxDim; }
+          const c = document.createElement('canvas');
+          c.width = width; c.height = height;
+          c.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(c.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function renderPhotos(){
+    const grid = document.getElementById('photoGrid');
+    grid.innerHTML = '';
+    for(const slot of PHOTO_SLOTS){
+      const photo = await getPhoto(slot.key);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'photo-slot';
+      if(photo){
+        wrapper.innerHTML = `
+          <img src="${photo.dataUrl}" alt="${slot.label}">
+          <button type="button" class="ps-remove" data-slot="${slot.key}" aria-label="حذف عکس">✕</button>
+          <span class="ps-date">${fmtDate(photo.date)}</span>
+        `;
+      } else {
+        wrapper.innerHTML = `
+          <div class="photo-plus">+</div>
+          <div class="ps-label">${slot.label}</div>
+        `;
+      }
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+      input.addEventListener('change', async (e)=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        try{
+          const dataUrl = await resizeImage(file);
+          await setPhoto(slot.key, dataUrl);
+          await renderPhotos();
+        } catch(err){}
+      });
+      wrapper.appendChild(input);
+      wrapper.addEventListener('click', (e)=>{
+        if(e.target.closest('.ps-remove')) return;
+        input.click();
+      });
+      const removeBtn = wrapper.querySelector('.ps-remove');
+      if(removeBtn){
+        removeBtn.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          await deletePhoto(slot.key);
+          await renderPhotos();
+        });
+      }
+      grid.appendChild(wrapper);
+    }
+  }
+
+  // ===== Rule-based local analysis (no server/API needed, works everywhere) =====
+  const aiBox = document.getElementById('aiBox');
+
+  function renderAnalysis(){
+    if(!lastResult){ aiBox.innerHTML = ''; return; }
+    const { weight, bmi, bodyFatPct, muscleMass, age, gender, tdee, bmr } = lastResult;
+
+    const lines = [];
+
+    // BMI summary
+    const bc = bmiCategory(bmi);
+    if(bc.label === 'وزن طبیعی'){
+      lines.push(`<strong>وضعیت کلی:</strong> شاخص توده بدنی‌ت (${bmi.toFixed(1)}) در محدودهٔ طبیعیه — نقطهٔ شروع خوبیه.`);
+    } else if(bc.label === 'کمبود وزن'){
+      lines.push(`<strong>وضعیت کلی:</strong> BMI (${bmi.toFixed(1)}) کمی زیر محدودهٔ طبیعیه؛ اگه هدفت افزایش وزن نیست، بهتره با متخصص تغذیه مشورت کنی.`);
+    } else if(bc.label === 'اضافه وزن'){
+      lines.push(`<strong>وضعیت کلی:</strong> BMI (${bmi.toFixed(1)}) کمی بالای محدودهٔ طبیعیه — با یه کسری کالری متعادل قابل مدیریته.`);
+    } else {
+      lines.push(`<strong>وضعیت کلی:</strong> BMI (${bmi.toFixed(1)}) در محدودهٔ چاقی قرار داره؛ توصیه می‌شه برای برنامه‌ریزی دقیق‌تر با پزشک یا متخصص تغذیه هم صحبت کنی.`);
+    }
+
+    // Body fat
+    const bfCat = bodyFatCategory(bodyFatPct, gender);
+    lines.push(`<strong>چربی بدن:</strong> ${bodyFatPct.toFixed(1)}٪ (رده «${bfCat}») — ${
+      bfCat==='چربی ضروری' ? 'این سطح برای عملکرد سالم بدن ممکنه خیلی پایین باشه.' :
+      bfCat==='ورزشکار' || bfCat==='تناسب خوب' ? 'در محدودهٔ خوبی قرار داری.' :
+      'با تمرین قدرتی و توجه به پروتئین دریافتی قابل بهبوده.'
+    }`);
+
+    // Muscle vs weight ratio
+    const musclePct = (muscleMass/weight)*100;
+    if(musclePct < 35){
+      lines.push(`<strong>عضله:</strong> نسبت توده عضلانی به وزن کمی پایینه — تمرین مقاومتی منظم (حداقل ۲-۳ روز در هفته) می‌تونه کمک زیادی بکنه.`);
+    } else {
+      lines.push(`<strong>عضله:</strong> توده عضلانی‌ت نسبت به وزنت در محدودهٔ خوبیه.`);
+    }
+
+    // Calorie guidance based on goal
+    const goalFa = goal === 'lose' ? 'کاهش وزن' : goal === 'gain' ? 'عضله‌سازی' : 'حفظ وزن فعلی';
+    let calAdvice;
+    if(goal === 'lose') calAdvice = `برای ${goalFa}، حدود ${Math.round(tdee-500).toLocaleString()} کالری در روز (کسری ۵۰۰ کالری) هدف مناسبیه — همراه با پروتئین کافی برای حفظ عضله.`;
+    else if(goal === 'gain') calAdvice = `برای ${goalFa}، حدود ${Math.round(tdee+350).toLocaleString()} کالری در روز به همراه تمرین قدرتی پیشنهاد می‌شه.`;
+    else calAdvice = `برای ${goalFa}، حدود ${Math.round(tdee).toLocaleString()} کالری در روز (برابر TDEE) مناسبه.`;
+    lines.push(`<strong>هدف کالری:</strong> ${calAdvice}`);
+
+    // Age-based note
+    if(age >= 40){
+      lines.push(`<strong>نکته سنی:</strong> بعد از ۴۰ سالگی، حفظ توده عضلانی با تمرین قدرتی نقش مهم‌تری در متابولیسم پیدا می‌کنه.`);
+    }
+
+    lines.push(`<em style="color:var(--text-faint); font-size:12px;">این یک تحلیل کلی و خودکار بر پایهٔ فرمول‌های استاندارده، نه توصیهٔ پزشکی. برای برنامه‌ریزی دقیق با متخصص مشورت کن.</em>`);
+
+    aiBox.innerHTML = `<div class="ai-text">${lines.join('<br><br>')}</div>`;
+  }
+
+  // ===== Reminder (Notification API, foreground only) =====
+  const reminderToggle = document.getElementById('reminderToggle');
+  const reminderStatus = document.getElementById('reminderStatus');
+  let reminderTimer = null;
+
+  function reminderStorageKey(){ return 'reminderEnabled:' + currentProfileId; }
+
+  async function getReminderState(){
+    try{
+      const res = await window.storage.get(reminderStorageKey());
+      return res && res.value === 'true';
+    } catch(e){ return false; }
+  }
+
+  function scheduleReminderCheck(){
+    if(reminderTimer) clearInterval(reminderTimer);
+    reminderTimer = setInterval(async ()=>{
+      const enabled = await getReminderState();
+      if(!enabled) return;
+      const history = await getHistory();
+      if(!history.length) return;
+      const last = new Date(history[history.length-1].date);
+      const days = (Date.now() - last.getTime()) / (1000*60*60*24);
+      if(days >= 7 && Notification.permission === 'granted'){
+        new Notification('یادآور اندازه‌گیری', { body: 'یک هفته از آخرین ثبت گذشته — وقتشه دوباره اندازه بگیری!' });
+      }
+    }, 60000 * 30);
+  }
+
+  async function renderReminderState(){
+    const enabled = await getReminderState();
+    reminderToggle.classList.toggle('on', enabled);
+    if(enabled){
+      if(Notification.permission === 'granted'){
+        reminderStatus.textContent = 'یادآور فعال است. تا وقتی این صفحه باز باشد، هر هفته یادآوری دریافت می‌کنی.';
+      } else {
+        reminderStatus.textContent = 'برای فعال شدن یادآور، دسترسی اعلان را در مرورگر تأیید کن.';
+      }
+    } else {
+      reminderStatus.textContent = 'برای فعال‌سازی، اجازهٔ اعلان مرورگر لازم است. این یادآور فقط زمانی کار می‌کند که این صفحه باز باشد.';
+    }
+  }
+
+  reminderToggle.addEventListener('click', async ()=>{
+    const currentlyOn = reminderToggle.classList.contains('on');
+    if(!currentlyOn){
+      if(!('Notification' in window)){
+        reminderStatus.textContent = 'مرورگر شما از اعلان پشتیبانی نمی‌کند.';
+        return;
+      }
+      let permission = Notification.permission;
+      if(permission === 'default'){
+        permission = await Notification.requestPermission();
+      }
+      if(permission !== 'granted'){
+        reminderStatus.textContent = 'دسترسی اعلان رد شد. برای فعال‌سازی، از تنظیمات مرورگر اجازه بده.';
+        return;
+      }
+      try{ await window.storage.set(reminderStorageKey(), 'true'); } catch(e){}
+      scheduleReminderCheck();
+    } else {
+      try{ await window.storage.set(reminderStorageKey(), 'false'); } catch(e){}
+    }
+    await renderReminderState();
+  });
+
+  // ===== Backup / Restore =====
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFileInput = document.getElementById('importFileInput');
+  const backupStatus = document.getElementById('backupStatus');
+
+  async function collectAllData(){
+    const data = { version: 1, exportedAt: new Date().toISOString(), profiles: [], currentProfileId, entries: {} };
+    try{
+      const profRes = await window.storage.get('profiles');
+      data.profiles = profRes && profRes.value ? JSON.parse(profRes.value) : profiles;
+    } catch(e){ data.profiles = profiles; }
+
+    for(const p of data.profiles){
+      const pid = p.id;
+      const entry = { measurements: [], photos: {}, reminderEnabled: false };
+      try{
+        const m = await window.storage.get('measurements:' + pid);
+        entry.measurements = m && m.value ? JSON.parse(m.value) : [];
+      } catch(e){}
+      for(const slot of ['front','side']){
+        try{
+          const ph = await window.storage.get('photo:' + pid + ':' + slot);
+          if(ph && ph.value) entry.photos[slot] = JSON.parse(ph.value);
+        } catch(e){}
+      }
+      try{
+        const r = await window.storage.get('reminderEnabled:' + pid);
+        entry.reminderEnabled = r && r.value === 'true';
+      } catch(e){}
+      data.entries[pid] = entry;
+    }
+    return data;
+  }
+
+  exportBtn.addEventListener('click', async ()=>{
+    exportBtn.disabled = true;
+    backupStatus.textContent = 'در حال آماده‌سازی فایل خروجی...';
+    try{
+      const data = await collectAllData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `orbit-backup-${dateStr}.json`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      backupStatus.textContent = 'فایل پشتیبان با موفقیت دانلود شد.';
+    } catch(e){
+      backupStatus.textContent = 'خطا در تهیهٔ فایل پشتیبان.';
+    } finally {
+      exportBtn.disabled = false;
+      setTimeout(()=>{ backupStatus.textContent = ''; }, 3500);
+    }
+  });
+
+  importBtn.addEventListener('click', ()=> importFileInput.click());
+
+  importFileInput.addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    backupStatus.textContent = 'در حال وارد کردن داده‌ها...';
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(!data || !Array.isArray(data.profiles) || !data.entries){
+        throw new Error('invalid format');
+      }
+
+      // Merge profiles (avoid duplicate IDs, keep existing + add new)
+      const existingIds = new Set(profiles.map(p=>p.id));
+      for(const p of data.profiles){
+        if(!existingIds.has(p.id)){ profiles.push(p); existingIds.add(p.id); }
+      }
+      await persistProfiles();
+
+      for(const pid of Object.keys(data.entries)){
+        const entry = data.entries[pid];
+        if(entry.measurements && entry.measurements.length){
+          try{ await window.storage.set('measurements:' + pid, JSON.stringify(entry.measurements)); } catch(err){}
+        }
+        if(entry.photos){
+          for(const slot of Object.keys(entry.photos)){
+            try{ await window.storage.set('photo:' + pid + ':' + slot, JSON.stringify(entry.photos[slot])); } catch(err){}
+          }
+        }
+        if(entry.reminderEnabled){
+          try{ await window.storage.set('reminderEnabled:' + pid, 'true'); } catch(err){}
+        }
+      }
+
+      renderProfileBar();
+      await renderHistory();
+      await renderPhotos();
+      backupStatus.textContent = `وارد کردن انجام شد — ${data.profiles.length} پروفایل بازیابی شد.`;
+    } catch(err){
+      backupStatus.textContent = 'فایل نامعتبر است یا قابل خواندن نیست.';
+    } finally {
+      importFileInput.value = '';
+      setTimeout(()=>{ backupStatus.textContent = ''; }, 4000);
+    }
+  });
+
+  // ===== Sync code panel (only meaningful with remote storage) =====
+  const syncPanel = document.getElementById('syncPanel');
+  const syncCodeBox = document.getElementById('syncCodeBox');
+  const copySyncBtn = document.getElementById('copySyncBtn');
+  const useSyncBtn = document.getElementById('useSyncBtn');
+  const syncStatus = document.getElementById('syncStatus');
+
+  function initSyncPanel(){
+    if(!window.__orbitRemote){
+      syncPanel.style.display = 'none';
+      return;
+    }
+    syncCodeBox.textContent = window.__orbitRemote.getOwnerToken();
+  }
+
+  copySyncBtn.addEventListener('click', async ()=>{
+    const token = window.__orbitRemote ? window.__orbitRemote.getOwnerToken() : '';
+    try{
+      await navigator.clipboard.writeText(token);
+      syncStatus.textContent = 'کد کپی شد — روی دستگاه دیگر وارد کن.';
+    } catch(e){
+      syncStatus.textContent = 'کپی خودکار ممکن نشد؛ کد را دستی انتخاب و کپی کن.';
+    }
+    setTimeout(()=>{ syncStatus.textContent=''; }, 3000);
+  });
+
+  useSyncBtn.addEventListener('click', ()=>{
+    const root = document.getElementById('modalRoot');
+    root.innerHTML = `
+      <div class="modal-backdrop" id="syncModalBackdrop">
+        <div class="modal-box">
+          <h3>وارد کردن کد همگام‌سازی</h3>
+          <input type="text" id="syncCodeInput" placeholder="کد را اینجا بچسبان" style="margin-bottom:4px; font-family:monospace;">
+          <div class="modal-actions">
+            <button type="button" class="ghost-btn" id="cancelSyncBtn">انصراف</button>
+            <button type="button" class="compute-btn" id="confirmSyncBtn" style="padding:12px;"><span>اعمال کد</span></button>
+          </div>
+        </div>
+      </div>`;
+    const backdrop = document.getElementById('syncModalBackdrop');
+    document.getElementById('cancelSyncBtn').addEventListener('click', ()=> root.innerHTML = '');
+    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) root.innerHTML = ''; });
+    document.getElementById('confirmSyncBtn').addEventListener('click', async ()=>{
+      const code = document.getElementById('syncCodeInput').value.trim();
+      if(!code || code.length < 8){ return; }
+      try{ localStorage.setItem('orbit-owner-token', code); } catch(e){}
+      root.innerHTML = '';
+      location.reload();
+    });
+  });
+
+  loadProfiles().then(async ()=>{
+    initSyncPanel();
+    await renderHistory();
+    await renderPhotos();
+    await renderReminderState();
+    scheduleReminderCheck();
+  });
+})();
+</script>
+</body>
+</html>
