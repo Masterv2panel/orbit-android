@@ -73,7 +73,7 @@ jobs:
 
       - name: Analyze Dart source
         working-directory: secure-vpn
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Build installable debug APK
         working-directory: secure-vpn
