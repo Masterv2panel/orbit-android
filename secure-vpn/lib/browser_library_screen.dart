@@ -2,11 +2,17 @@
 import 'package:flutter/material.dart';
 
 import 'browser_store.dart';
+import 'orbit_localization.dart';
 
 class BrowserLibraryScreen extends StatefulWidget {
-  const BrowserLibraryScreen({super.key, required this.store});
+  const BrowserLibraryScreen({
+    super.key,
+    required this.store,
+    this.onToggleLocale,
+  });
 
   final BrowserStore store;
+  final VoidCallback? onToggleLocale;
 
   @override
   State<BrowserLibraryScreen> createState() => _BrowserLibraryScreenState();
@@ -50,8 +56,14 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
           title: Text(title),
           content: Text(message),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('پاک‌کردن')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(orbitText(context, 'انصراف')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(orbitText(context, 'پاک‌کردن')),
+            ),
           ],
         ),
       ) ??
@@ -59,52 +71,84 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('کتابخانهٔ مرورگر'),
-            bottom: const TabBar(
-              tabs: [
-                Tab(icon: Icon(Icons.history), text: 'تاریخچه'),
-                Tab(icon: Icon(Icons.bookmark_outline), text: 'نشانک‌ها'),
-              ],
+    length: 2,
+    child: Scaffold(
+      appBar: AppBar(
+        title: Text(
+          orbitText(context, 'کتابخانهٔ مرورگر'),
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        bottom: TabBar(
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.history),
+              text: orbitText(context, 'تاریخچه'),
             ),
-            actions: [
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'history' && await _confirm('پاک‌کردن تاریخچه؟', 'همهٔ بازدیدهای ذخیره‌شده پاک می‌شوند.')) {
-                    await _clearHistory();
-                  }
-                  if (value == 'bookmarks' && await _confirm('پاک‌کردن نشانک‌ها؟', 'همهٔ نشانک‌های ذخیره‌شده پاک می‌شوند.')) {
-                    await _clearBookmarks();
-                  }
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'history', child: Text('پاک‌کردن تاریخچه')),
-                  PopupMenuItem(value: 'bookmarks', child: Text('پاک‌کردن نشانک‌ها')),
-                ],
+            Tab(
+              icon: const Icon(Icons.bookmark_outline),
+              text: orbitText(context, 'نشانک‌ها'),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            tooltip: orbitText(context, 'تغییر زبان'),
+            onPressed: widget.onToggleLocale,
+            icon: Text(
+              Localizations.localeOf(context).languageCode == 'en'
+                  ? 'FA'
+                  : 'EN',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'history' &&
+                  await _confirm(
+                    orbitText(context, 'پاک‌کردن تاریخچه؟'),
+                    orbitText(context, 'همهٔ بازدیدهای ذخیره‌شده پاک می‌شوند.'),
+                  )) {
+                await _clearHistory();
+              }
+              if (value == 'bookmarks' &&
+                  await _confirm(
+                    orbitText(context, 'پاک‌کردن نشانک‌ها؟'),
+                    orbitText(context, 'همهٔ نشانک‌های ذخیره‌شده پاک می‌شوند.'),
+                  )) {
+                await _clearBookmarks();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'history',
+                child: Text(orbitText(context, 'پاک‌کردن تاریخچه')),
+              ),
+              PopupMenuItem(
+                value: 'bookmarks',
+                child: Text(orbitText(context, 'پاک‌کردن نشانک‌ها')),
               ),
             ],
           ),
-          body: FutureBuilder<void>(
-            future: _loading,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return TabBarView(
-                children: [
-                  _buildHistory(),
-                  _buildBookmarks(),
-                ],
-              );
-            },
-          ),
-        ),
-      );
+        ],
+      ),
+      body: FutureBuilder<void>(
+        future: _loading,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return TabBarView(children: [_buildHistory(), _buildBookmarks()]);
+        },
+      ),
+    ),
+  );
 
   Widget _buildHistory() {
-    if (_history.isEmpty) return const _EmptyLibrary(text: 'هنوز موردی در تاریخچه نیست.');
+    if (_history.isEmpty)
+      return _EmptyLibrary(
+        text: orbitText(context, 'هنوز موردی در تاریخچه نیست.'),
+        icon: Icons.history_rounded,
+      );
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView.separated(
@@ -113,14 +157,25 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
         itemBuilder: (context, index) {
           final visit = _history[index];
           return ListTile(
-            leading: const Icon(Icons.history),
-            title: Text(visit.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text('${visit.url}\n${_formatTime(visit.visitedAt)}', maxLines: 2, overflow: TextOverflow.ellipsis,
-                textDirection: TextDirection.ltr),
+            leading: const CircleAvatar(
+              backgroundColor: Color(0x22152232),
+              child: Icon(Icons.history, color: Color(0xFF52E6DF)),
+            ),
+            title: Text(
+              visit.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              '${visit.url}\n${_formatTime(visit.visitedAt)}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textDirection: TextDirection.ltr,
+            ),
             isThreeLine: true,
             onTap: () => Navigator.pop(context, visit.url),
             trailing: IconButton(
-              tooltip: 'حذف از تاریخچه',
+              tooltip: orbitText(context, 'حذف از تاریخچه'),
               icon: const Icon(Icons.close),
               onPressed: () async {
                 await widget.store.removeVisit(visit);
@@ -134,7 +189,11 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
   }
 
   Widget _buildBookmarks() {
-    if (_bookmarks.isEmpty) return const _EmptyLibrary(text: 'هنوز نشانکی ذخیره نشده است.');
+    if (_bookmarks.isEmpty)
+      return _EmptyLibrary(
+        text: orbitText(context, 'هنوز نشانکی ذخیره نشده است.'),
+        icon: Icons.bookmark_border_rounded,
+      );
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView.separated(
@@ -143,12 +202,24 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
         itemBuilder: (context, index) {
           final bookmark = _bookmarks[index];
           return ListTile(
-            leading: const Icon(Icons.bookmark),
-            title: Text(bookmark.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(bookmark.url, maxLines: 1, overflow: TextOverflow.ellipsis, textDirection: TextDirection.ltr),
+            leading: const CircleAvatar(
+              backgroundColor: Color(0x22152232),
+              child: Icon(Icons.bookmark, color: Color(0xFF52E6DF)),
+            ),
+            title: Text(
+              bookmark.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              bookmark.url,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textDirection: TextDirection.ltr,
+            ),
             onTap: () => Navigator.pop(context, bookmark.url),
             trailing: IconButton(
-              tooltip: 'حذف نشانک',
+              tooltip: orbitText(context, 'حذف نشانک'),
               icon: const Icon(Icons.bookmark_remove_outlined),
               onPressed: () async {
                 await widget.store.removeBookmark(bookmark.url);
@@ -163,25 +234,40 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
 
   String _formatTime(DateTime dateTime) {
     final value = dateTime.toLocal();
-    final date = '${value.year.toString().padLeft(4, '0')}-'
+    final date =
+        '${value.year.toString().padLeft(4, '0')}-'
         '${value.month.toString().padLeft(2, '0')}-'
         '${value.day.toString().padLeft(2, '0')}';
-    final time = '${value.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${value.hour.toString().padLeft(2, '0')}:'
         '${value.minute.toString().padLeft(2, '0')}';
     return '$date  $time';
   }
 }
 
 class _EmptyLibrary extends StatelessWidget {
-  const _EmptyLibrary({required this.text});
+  const _EmptyLibrary({required this.text, required this.icon});
 
   final String text;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(text, style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 48, color: const Color(0xFF52E6DF)),
+          const SizedBox(height: 14),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: const Color(0xFFADB7C8)),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
 }

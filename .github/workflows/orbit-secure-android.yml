@@ -30,7 +30,7 @@ jobs:
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null
-          "$SDKMANAGER" --install 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0' 'ndk;28.0.13004108'
+          "$SDKMANAGER" --install 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.0.13004108'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -46,17 +46,23 @@ jobs:
             rm -f test/widget_test.dart
           fi
 
-      - name: Set Android minimum SDK required by the VPN engine
+      - name: Set Android SDK levels (min 24, compile and target 36)
         working-directory: secure-vpn
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           path = Path('android/app/build.gradle.kts')
           text = path.read_text()
           expected = 'minSdk = flutter.minSdkVersion'
           if expected not in text:
               raise SystemExit('Could not find Android minSdk declaration in generated Gradle file')
-          path.write_text(text.replace(expected, 'minSdk = 24', 1))
+          text = text.replace(expected, 'minSdk = 24', 1)
+          for key in ('compileSdk', 'targetSdk'):
+              text, count = re.subn(rf'(?m)^(\s*{key}\s*=\s*).+$', rf'\g<1>36', text, count=1)
+              if count != 1:
+                  raise SystemExit(f'Could not set Android {key} to API 36 in generated Gradle file')
+          path.write_text(text)
           PY
 
       - name: Keep local browser library out of Android Auto Backup
@@ -79,6 +85,19 @@ jobs:
       - name: Resolve Dart dependencies
         working-directory: secure-vpn
         run: flutter pub get
+
+      - name: Check Dart formatting
+        working-directory: secure-vpn
+        run: >-
+          dart format --output=none --set-exit-if-changed
+          lib/app_locale_controller.dart
+          lib/browser_library_screen.dart
+          lib/browser_navigation_policy.dart
+          lib/browser_screen.dart
+          lib/main.dart
+          lib/orbit_localization.dart
+          lib/security_guide_screen.dart
+          test/locale_and_back_policy_test.dart
 
       - name: Patch legacy WebView Android R8 rule for current AGP
         working-directory: secure-vpn
@@ -125,6 +144,23 @@ jobs:
       - name: Build installable release APKs per ABI
         working-directory: secure-vpn
         run: flutter build apk --release --split-per-abi
+
+      - name: Verify release APK SDK metadata
+        run: |
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          test -x "$AAPT"
+          count=0
+          for apk in secure-vpn/build/app/outputs/flutter-apk/app-*-release.apk; do
+            test -f "$apk"
+            BADGING="$($AAPT dump badging "$apk")"
+            echo "$BADGING" | grep -q "sdkVersion:'24'"
+            echo "$BADGING" | grep -q "targetSdkVersion:'36'"
+            echo "$BADGING" | grep -q "package: name='com.orbitsecure.orbit_secure'"
+            SIZE="$(stat -c '%s' "$apk")"
+            echo "$apk: minSdk 24, targetSdk 36, bytes $SIZE"
+            count=$((count + 1))
+          done
+          test "$count" -eq 3
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
