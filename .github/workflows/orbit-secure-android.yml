@@ -19,11 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 21
+      - name: Set up Java 17 for libbox
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
       - name: Install required Android SDK packages
         run: |
@@ -74,6 +74,12 @@ jobs:
       - name: Analyze Dart source
         working-directory: secure-vpn
         run: flutter analyze --no-fatal-infos
+
+      - name: Set up Java 21 for Android release lint
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Build installable release APKs per ABI
         working-directory: secure-vpn
