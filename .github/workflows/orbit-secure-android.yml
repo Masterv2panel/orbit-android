@@ -75,14 +75,14 @@ jobs:
         working-directory: secure-vpn
         run: flutter analyze --no-fatal-infos
 
-      - name: Build installable debug APK
+      - name: Build installable release APKs per ABI
         working-directory: secure-vpn
-        run: flutter build apk --debug
+        run: flutter build apk --release --split-per-abi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-secure-android-apk
-          path: secure-vpn/build/app/outputs/flutter-apk/app-debug.apk
+          name: orbit-secure-android-release-apks
+          path: secure-vpn/build/app/outputs/flutter-apk/app-*-release.apk
           if-no-files-found: error
           retention-days: 30

@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
-import 'package:sing_box_flutter/sing_box_flutter.dart';
+
+import 'browser_screen.dart';
+import 'vpn_service.dart';
 
 void main() => runApp(const OrbitSecureApp());
 
@@ -29,7 +32,13 @@ class OrbitSecureApp extends StatelessWidget {
           scaffoldBackgroundColor: const Color(0xFF080B12),
           useMaterial3: true,
         ),
-        home: const ConnectionScreen(),
+        home: BrowserScreen(
+          onOpenVpn: (context) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ConnectionScreen()),
+            );
+          },
+        ),
       );
 }
 
@@ -39,6 +48,7 @@ class HysteriaProfile {
     required this.port,
     required this.password,
     required this.serverName,
+    required this.tlsInsecure,
     this.obfsPassword,
     this.label,
   });
@@ -47,6 +57,7 @@ class HysteriaProfile {
   final int port;
   final String password;
   final String serverName;
+  final bool tlsInsecure;
   final String? obfsPassword;
   final String? label;
 
@@ -58,8 +69,8 @@ class HysteriaProfile {
     if (uri.host.isEmpty) throw const FormatException('نشانی سرور در لینک نیست.');
     if (uri.userInfo.isEmpty) throw const FormatException('رمز اتصال در لینک نیست.');
     final insecure = uri.queryParameters['insecure']?.toLowerCase();
-    if (insecure == '1' || insecure == 'true') {
-      throw const FormatException('این لینک بررسی گواهی TLS را خاموش می‌کند و پذیرفته نمی‌شود.');
+    if (insecure != null && !{'0', '1', 'true', 'false'}.contains(insecure)) {
+      throw const FormatException('مقدار insecure باید 0/1 یا false/true باشد.');
     }
     final obfsType = uri.queryParameters['obfs'];
     final obfsPassword = uri.queryParameters['obfs-password'];
@@ -77,6 +88,7 @@ class HysteriaProfile {
       serverName: uri.queryParameters['sni']?.trim().isNotEmpty == true
           ? uri.queryParameters['sni']!.trim()
           : uri.host,
+      tlsInsecure: insecure == '1' || insecure == 'true',
       obfsPassword: obfsType == 'salamander' ? obfsPassword : null,
       label: uri.fragment.isEmpty ? null : uri.fragment,
     );
@@ -92,6 +104,7 @@ class HysteriaProfile {
       'tls': <String, Object?>{
         'enabled': true,
         'server_name': serverName,
+        'insecure': tlsInsecure,
       },
       if (obfsPassword != null)
         'obfs': <String, Object?>{
@@ -148,7 +161,8 @@ class ConnectionScreen extends StatefulWidget {
 class _ConnectionScreenState extends State<ConnectionScreen>
     with WidgetsBindingObserver {
   final _linkController = TextEditingController();
-  final _vpn = SingBoxFlutter();
+  final _vpnService = OrbitVpnService.instance;
+  late final _vpn = _vpnService.api;
   StreamSubscription<dynamic>? _statusSubscription;
   HysteriaProfile? _profile;
   String _state = 'disconnected';
@@ -156,6 +170,8 @@ class _ConnectionScreenState extends State<ConnectionScreen>
   bool _busy = false;
   bool _initialized = false;
   bool _showLink = false;
+  bool _latencyBusy = false;
+  String? _latency;
 
   @override
   void initState() {
@@ -166,7 +182,7 @@ class _ConnectionScreenState extends State<ConnectionScreen>
 
   Future<void> _initialize() async {
     try {
-      await _vpn.initialize(notificationTitle: 'Orbit Secure');
+      await _vpnService.initialize();
       _statusSubscription = _vpn.status.listen((status) {
         if (!mounted) return;
         setState(() => _state = status.state.toString().split('.').last);
@@ -233,6 +249,24 @@ class _ConnectionScreenState extends State<ConnectionScreen>
         setState(() => _error = 'اول لینک Hysteria2 سرور را وارد و بررسی کن.');
         return;
       }
+      if (profile.tlsInsecure) {
+        final accepted = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('گواهی TLS بررسی نمی‌شود'),
+            content: const Text(
+              'این پروفایل هر گواهی سروری را می‌پذیرد. مهاجم واسطه می‌تواند اتصال را جعل یا شنود کند. '
+              'فقط اگر به ارائه‌دهنده و سرور اعتماد داری ادامه بده.',
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('لغو')),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('می‌پذیرم و ادامه')),
+            ],
+          ),
+        );
+        if (accepted != true) return;
+      }
       final config = profile.toSingBoxConfig();
       await _vpn.checkConfig(config);
       final granted = await _vpn.requestPermission();
@@ -247,6 +281,32 @@ class _ConnectionScreenState extends State<ConnectionScreen>
       setState(() => _error = 'اتصال شروع نشد؛ تنظیمات یا سرور را بررسی کن.');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _testTunnelLatency() async {
+    if (_state != 'connected' || _latencyBusy) return;
+    setState(() {
+      _latencyBusy = true;
+      _latency = null;
+    });
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
+    final stopwatch = Stopwatch()..start();
+    try {
+      final request = await client
+          .getUrl(Uri.parse('https://www.gstatic.com/generate_204'))
+          .timeout(const Duration(seconds: 12));
+      request.followRedirects = false;
+      final response = await request.close().timeout(const Duration(seconds: 12));
+      await response.drain<void>();
+      stopwatch.stop();
+      if (!mounted) return;
+      setState(() => _latency = response.statusCode == 204 ? '${stopwatch.elapsedMilliseconds} ms' : 'پاسخ نامعتبر');
+    } catch (_) {
+      if (mounted) setState(() => _latency = 'ناموفق');
+    } finally {
+      client.close(force: true);
+      if (mounted) setState(() => _latencyBusy = false);
     }
   }
 
@@ -343,8 +403,15 @@ class _ConnectionScreenState extends State<ConnectionScreen>
             ),
             if (_profile != null) ...[
               const SizedBox(height: 8),
-              Text('TLS verification روشن است؛ لینک‌های insecure رد می‌شوند.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12)),
+              Text(
+                _profile!.tlsInsecure
+                    ? 'هشدار: بررسی گواهی TLS خاموش است؛ اتصال در برابر حملهٔ واسطه آسیب‌پذیر است.'
+                    : 'بررسی گواهی TLS روشن است.',
+                style: TextStyle(
+                  color: _profile!.tlsInsecure ? const Color(0xFFFF7B84) : Theme.of(context).colorScheme.secondary,
+                  fontSize: 12,
+                ),
+              ),
             ],
             if (_error != null) ...[
               const SizedBox(height: 14),
@@ -359,6 +426,16 @@ class _ConnectionScreenState extends State<ConnectionScreen>
               label: Text(_busy || connecting ? 'در حال انجام…' : connected ? 'قطع اتصال' : 'اتصال VPN'),
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
             ),
+            if (connected) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _latencyBusy ? null : _testTunnelLatency,
+                icon: _latencyBusy
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.speed),
+                label: Text(_latency == null ? 'سنجش تأخیر از داخل تونل' : 'تأخیر مسیر VPN: $_latency'),
+              ),
+            ],
             const SizedBox(height: 22),
             const Text(
               'با اتصال، اندروید درخواست مجوز VPN را نشان می‌دهد. فقط پس از تأیید تو، تونل شروع می‌شود. '

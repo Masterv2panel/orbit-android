@@ -13,13 +13,35 @@ void main() {
       expect(profile.password, 'secret');
       expect(profile.serverName, 'cdn.example.com');
       expect(profile.label, 'home');
+      expect(profile.tlsInsecure, isFalse);
     });
 
-    test('rejects links that disable certificate verification', () {
+    test('accepts insecure links but marks sing-box TLS as unverified', () {
+      final profile = HysteriaProfile.parse('hy2://secret@example.com:8443?insecure=1');
+      final config = jsonDecode(profile.toSingBoxConfig()) as Map<String, dynamic>;
+      final outbound = (config['outbounds'] as List).single as Map<String, dynamic>;
+      expect(profile.tlsInsecure, isTrue);
+      expect(outbound['tls']['insecure'], isTrue);
+    });
+
+    test('rejects unsupported insecure flag values', () {
       expect(
-        () => HysteriaProfile.parse('hy2://secret@example.com:8443?insecure=1'),
+        () => HysteriaProfile.parse('hy2://secret@example.com?insecure=yes'),
         throwsA(isA<FormatException>()),
       );
+    });
+
+    test('routes DNS through the proxy and enables strict TUN routing', () {
+      final config = jsonDecode(
+        HysteriaProfile.parse('hy2://secret@example.com').toSingBoxConfig(),
+      ) as Map<String, dynamic>;
+      final dns = config['dns'] as Map<String, dynamic>;
+      final dnsServer = (dns['servers'] as List).single as Map<String, dynamic>;
+      final tun = (config['inbounds'] as List).single as Map<String, dynamic>;
+      expect(dnsServer['detour'], 'proxy');
+      expect(dns['final'], 'dns-via-proxy');
+      expect(tun['auto_route'], isTrue);
+      expect(tun['strict_route'], isTrue);
     });
 
     test('maps Salamander obfuscation into sing-box outbound config', () {
