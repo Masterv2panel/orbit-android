@@ -80,6 +80,30 @@ jobs:
         working-directory: secure-vpn
         run: flutter pub get
 
+      - name: Patch legacy WebView Android R8 rule for current AGP
+        working-directory: secure-vpn
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          cache = Path(os.environ.get('PUB_CACHE', Path.home() / '.pub-cache'))
+          files = sorted(cache.glob('hosted/pub.dev/flutter_inappwebview_android-*/android/build.gradle'))
+          if not files:
+              raise SystemExit('Could not find flutter_inappwebview_android Gradle file in Pub cache')
+          old = "getDefaultProguardFile('proguard-android.txt')"
+          new = "getDefaultProguardFile('proguard-android-optimize.txt')"
+          for path in files:
+              text = path.read_text()
+              if old in text:
+                  path.write_text(text.replace(old, new))
+                  print(f'Patched obsolete R8 rule in {path}')
+              elif new not in text:
+                  raise SystemExit(f'Unexpected ProGuard configuration in {path}')
+              else:
+                  print(f'R8 rule is already compatible in {path}')
+          PY
+
       - name: Build selected sing-box Hysteria2 Android core
         working-directory: secure-vpn
         run: dart run sing_box_flutter build --target android
