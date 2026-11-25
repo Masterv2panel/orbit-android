@@ -59,6 +59,23 @@ jobs:
           path.write_text(text.replace(expected, 'minSdk = 24', 1))
           PY
 
+      - name: Keep local browser library out of Android Auto Backup
+        working-directory: secure-vpn
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('android/app/src/main/AndroidManifest.xml')
+          text = path.read_text()
+          if 'android:allowBackup=' not in text:
+              text, count = re.subn(r'<application\b', '<application android:allowBackup="false"', text, count=1)
+              if count != 1:
+                  raise SystemExit('Could not find the Android application manifest element')
+          elif 'android:allowBackup="false"' not in text:
+              raise SystemExit('Android Auto Backup must remain disabled for the browser library')
+          path.write_text(text)
+          PY
+
       - name: Resolve Dart dependencies
         working-directory: secure-vpn
         run: flutter pub get

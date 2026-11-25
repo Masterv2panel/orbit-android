@@ -4,7 +4,7 @@ publish_to: none
 version: 0.1.0+1
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
   flutter: '>=3.24.0'
 
 dependencies:
@@ -13,8 +13,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   sing_box_flutter: 0.3.1
-  webview_flutter: ^4.14.1
-  webview_flutter_android: ^4.14.1
+  flutter_inappwebview: 6.1.5
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
