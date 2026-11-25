@@ -438,26 +438,27 @@ class _BrowserScreenState extends State<BrowserScreen> {
         !_tabs.contains(tab) ||
         !identical(tab.controller, controller))
       return;
-    if (currentUrl == null || currentUrl == 'about:blank') {
+    final resolvedUrl = currentUrl;
+    if (resolvedUrl == null || resolvedUrl == 'about:blank') {
       setState(() {
         tab.isLoading = false;
         tab.progress = 100;
       });
       return;
     }
-    final parsed = Uri.tryParse(currentUrl);
+    final parsed = Uri.tryParse(resolvedUrl);
     final safeTitle = (title == null || title.isEmpty)
-        ? (parsed?.host ?? currentUrl)
+        ? (parsed?.host ?? resolvedUrl)
         : title;
-    tab.currentUrl = currentUrl;
+    tab.currentUrl = resolvedUrl;
     tab.title = safeTitle;
     tab.isLoading = false;
     tab.progress = 100;
-    await _store.recordVisit(url: currentUrl, title: safeTitle);
+    await _store.recordVisit(url: resolvedUrl, title: safeTitle);
     await _refreshTabNavigation(tab, controller);
     if (!mounted) return;
     setState(() {
-      if (identical(tab, _activeTab)) _addressController.text = currentUrl;
+      if (identical(tab, _activeTab)) _addressController.text = resolvedUrl;
     });
     if (identical(tab, _activeTab)) unawaited(_refreshBookmarkStatus());
   }
