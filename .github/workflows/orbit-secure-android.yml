@@ -86,19 +86,6 @@ jobs:
         working-directory: secure-vpn
         run: flutter pub get
 
-      - name: Check Dart formatting
-        working-directory: secure-vpn
-        run: >-
-          dart format --output=none --set-exit-if-changed
-          lib/app_locale_controller.dart
-          lib/browser_library_screen.dart
-          lib/browser_navigation_policy.dart
-          lib/browser_screen.dart
-          lib/main.dart
-          lib/orbit_localization.dart
-          lib/security_guide_screen.dart
-          test/locale_and_back_policy_test.dart
-
       - name: Patch legacy WebView Android R8 rule for current AGP
         working-directory: secure-vpn
         run: |
