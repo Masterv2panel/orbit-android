@@ -1387,9 +1387,39 @@ class _BrowserScreenState extends State<BrowserScreen> {
             !_tabs.contains(tab) ||
             !identical(tab.controller, controller))
           return;
+        final errorType = error.type.toString().split('.').last;
+        final safeDescription = error.description
+            .replaceAll(RegExp(r'https?://\S+'), '[URL]')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        final isConnectionClosed =
+            '$errorType $safeDescription'.toLowerCase().contains(
+              'connection_closed',
+            );
+        final diagnosis = isConnectionClosed
+            ? orbitTextPair(
+                context,
+                'اتصال پیش از دریافت پاسخ بسته شد. ممکن است مسیر VPN/سرور/شبکه یا خود سایت اتصال را قطع کرده باشد؛ این خطا به‌تنهایی علت قطعی را مشخص نمی‌کند.',
+                'The connection closed before a response arrived. The VPN/server/network path or the site may have closed it; this error alone does not identify the cause.',
+              )
+            : orbitTextPair(
+                context,
+                'اتصال صفحه ناموفق بود. جزئیات زیر را برای تشخیص مسیر بررسی کن.',
+                'The page connection failed. Check the details below to diagnose the route.',
+              );
+        final clippedDescription = safeDescription.length > 160
+            ? safeDescription.substring(0, 160)
+            : safeDescription;
+        final details = safeDescription.isEmpty
+            ? errorType
+            : '$errorType · $clippedDescription';
         setState(() {
           tab.isLoading = false;
-          _error = 'بارگذاری صفحه ناموفق بود. اتصال یا نشانی را بررسی کن.';
+          _error = orbitTextPair(
+            context,
+            '$diagnosis\nجزئیات WebView: $details',
+            '$diagnosis\nWebView detail: $details',
+          );
         });
       },
       onRenderProcessGone: (controller, detail) {
