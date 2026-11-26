@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import 'app_locale_controller.dart';
 import 'browser_screen.dart';
+import 'browser_store.dart';
 import 'orbit_localization.dart';
 import 'vpn_service.dart';
 
@@ -201,9 +202,10 @@ class ConnectionScreen extends StatefulWidget {
 }
 
 class _ConnectionScreenState extends State<ConnectionScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final _linkController = TextEditingController();
   final _vpnService = OrbitVpnService.instance;
+  final _store = BrowserStore.instance;
   late final _vpn = _vpnService.api;
   StreamSubscription<dynamic>? _statusSubscription;
   HysteriaProfile? _profile;
@@ -215,11 +217,34 @@ class _ConnectionScreenState extends State<ConnectionScreen>
   bool _latencyBusy = false;
   String? _latency;
 
+  late final AnimationController _pulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  )..repeat(reverse: true);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initialize();
+    _restoreSavedLink();
+  }
+
+  /// Loads the last-saved hysteria2:// link from local storage so the user
+  /// doesn't have to paste it again after reopening the app. Only parses it
+  /// silently; does not auto-connect.
+  Future<void> _restoreSavedLink() async {
+    final saved = await _store.loadVpnLink();
+    if (saved == null || saved.trim().isEmpty || !mounted) return;
+    _linkController.text = saved;
+    try {
+      final profile = HysteriaProfile.parse(saved);
+      if (mounted) setState(() => _profile = profile);
+    } catch (_) {
+      // Saved link no longer parses (format changed, corrupted, etc.) —
+      // leave it in the text field for the user to review, but don't treat
+      // it as a valid profile.
+    }
   }
 
   Future<void> _initialize() async {
@@ -262,17 +287,29 @@ class _ConnectionScreenState extends State<ConnectionScreen>
 
   void _importLink() {
     try {
-      final profile = HysteriaProfile.parse(_linkController.text);
+      final raw = _linkController.text;
+      final profile = HysteriaProfile.parse(raw);
       setState(() {
         _profile = profile;
         _error = null;
       });
+      unawaited(_store.saveVpnLink(raw.trim()));
       FocusScope.of(context).unfocus();
     } on FormatException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
       setState(() => _error = 'لینک اتصال قابل‌خواندن نیست.');
     }
+  }
+
+  Future<void> _forgetSavedLink() async {
+    await _store.clearVpnLink();
+    if (!mounted) return;
+    setState(() {
+      _profile = null;
+      _linkController.clear();
+      _error = null;
+    });
   }
 
   Future<void> _toggleConnection() async {
@@ -377,6 +414,7 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     WidgetsBinding.instance.removeObserver(this);
     _linkController.dispose();
     _statusSubscription?.cancel();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -443,49 +481,93 @@ class _ConnectionScreenState extends State<ConnectionScreen>
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 32),
               children: [
                 Container(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 24),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF10343B),
-                        Color(0xFF142337),
-                        Color(0xFF101722),
-                      ],
+                    borderRadius: BorderRadius.circular(32),
+                    gradient: LinearGradient(
+                      colors: connected
+                          ? const [
+                              Color(0xFF0D3B37),
+                              Color(0xFF123247),
+                              Color(0xFF0C1420),
+                            ]
+                          : const [
+                              Color(0xFF10343B),
+                              Color(0xFF142337),
+                              Color(0xFF101722),
+                            ],
                       begin: Alignment.topRight,
                       end: Alignment.bottomLeft,
                     ),
-                    border: Border.all(color: const Color(0x5552E6DF)),
-                    boxShadow: const [
+                    border: Border.all(
+                      color: statusColor.withOpacity(.35),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x1F36D6D0),
-                        blurRadius: 30,
-                        offset: Offset(0, 12),
+                        color: statusColor.withOpacity(.14),
+                        blurRadius: 36,
+                        offset: const Offset(0, 14),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        width: 76,
-                        height: 76,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: statusColor.withOpacity(.10),
-                          border: Border.all(
-                            color: statusColor.withOpacity(.55),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          connected
-                              ? Icons.shield_rounded
-                              : Icons.shield_outlined,
-                          size: 38,
-                          color: statusColor,
-                        ),
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final animate = connected || connecting;
+                          final t = animate ? _pulseController.value : 0.0;
+                          return SizedBox(
+                            width: 108,
+                            height: 108,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                if (animate)
+                                  Container(
+                                    width: 108 * (0.82 + t * 0.28),
+                                    height: 108 * (0.82 + t * 0.28),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: statusColor.withOpacity(
+                                          (1 - t) * .45,
+                                        ),
+                                        width: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                Container(
+                                  width: 84,
+                                  height: 84,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        statusColor.withOpacity(.22),
+                                        statusColor.withOpacity(.05),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: statusColor.withOpacity(.6),
+                                      width: 1.6,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    connected
+                                        ? Icons.shield_rounded
+                                        : Icons.shield_outlined,
+                                    size: 40,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 18),
                       Text(
                         statusText,
                         style: TextStyle(
@@ -566,7 +648,7 @@ class _ConnectionScreenState extends State<ConnectionScreen>
                           hintText: 'hysteria2://…',
                           helperText: orbitText(
                             context,
-                            'اطلاعات لینک فقط در حافظهٔ همین اجرا نگه داشته می‌شود.',
+                            'لینک روی همین گوشی ذخیره می‌شود تا دوباره لازم نباشد واردش کنی.',
                           ),
                           helperMaxLines: 2,
                           border: OutlineInputBorder(
@@ -597,15 +679,32 @@ class _ConnectionScreenState extends State<ConnectionScreen>
                         ),
                       ),
                       const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: _busy ? null : _importLink,
-                        icon: const Icon(Icons.link_rounded),
-                        label: Text(
-                          orbitText(context, 'بررسی و بارگذاری لینک'),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _busy ? null : _importLink,
+                              icon: const Icon(Icons.link_rounded),
+                              label: Text(
+                                orbitText(context, 'بررسی و ذخیرهٔ لینک'),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                              ),
+                            ),
+                          ),
+                          if (_profile != null || _linkController.text.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            IconButton.outlined(
+                              tooltip: orbitText(context, 'حذف لینک ذخیره‌شده'),
+                              onPressed: _busy ? null : _forgetSavedLink,
+                              icon: const Icon(Icons.delete_outline_rounded),
+                              style: IconButton.styleFrom(
+                                minimumSize: const Size(48, 48),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       if (_profile != null) ...[
                         const SizedBox(height: 12),
@@ -643,38 +742,62 @@ class _ConnectionScreenState extends State<ConnectionScreen>
                     ),
                   ),
                 ],
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: !_initialized || _busy ? null : _toggleConnection,
-                  icon: _busy || connecting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          connected
-                              ? Icons.stop_rounded
-                              : Icons.power_settings_new_rounded,
-                        ),
-                  label: Text(
-                    orbitText(
-                      context,
-                      _busy || connecting
-                          ? 'در حال انجام…'
-                          : connected
-                          ? 'قطع اتصال'
-                          : 'اتصال VPN',
-                    ),
+                const SizedBox(height: 22),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (connected
+                                ? const Color(0xFF243442)
+                                : const Color(0xFF0BA3AC))
+                            .withOpacity(.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: connected
-                        ? const Color(0xFF243442)
-                        : const Color(0xFF087F87),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(17),
+                  child: FilledButton.icon(
+                    onPressed: !_initialized || _busy
+                        ? null
+                        : _toggleConnection,
+                    icon: _busy || connecting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Icon(
+                            connected
+                                ? Icons.stop_rounded
+                                : Icons.power_settings_new_rounded,
+                          ),
+                    label: Text(
+                      orbitText(
+                        context,
+                        _busy || connecting
+                            ? 'در حال انجام…'
+                            : connected
+                            ? 'قطع اتصال'
+                            : 'اتصال VPN',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(58),
+                      backgroundColor: connected
+                          ? const Color(0xFF243442)
+                          : const Color(0xFF0BA3AC),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                 ),

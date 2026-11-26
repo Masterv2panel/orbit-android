@@ -60,6 +60,7 @@ class BrowserStore {
   static const _timezoneEnabledKey = 'orbit_timezone_lookup_enabled_v1';
   static const _timezonePromptShownKey = 'orbit_timezone_lookup_prompt_shown_v1';
   static const _thirdPartyCookiesKey = 'orbit_third_party_cookies_enabled_v1';
+  static const _vpnLinkKey = 'orbit_vpn_link_v1';
   static const maxHistoryEntries = 500;
 
   Future<SharedPreferences>? _preferencesFuture;
@@ -129,6 +130,19 @@ class BrowserStore {
 
   Future<void> setThirdPartyCookiesEnabled(bool enabled) async {
     await (await _preferences).setBool(_thirdPartyCookiesKey, enabled);
+  }
+
+  /// Persists the raw hysteria2:// link so the user doesn't retype it after
+  /// restarting the app. Stored locally only (SharedPreferences), never
+  /// transmitted anywhere.
+  Future<String?> loadVpnLink() async => (await _preferences).getString(_vpnLinkKey);
+
+  Future<void> saveVpnLink(String link) async {
+    await (await _preferences).setString(_vpnLinkKey, link);
+  }
+
+  Future<void> clearVpnLink() async {
+    await (await _preferences).remove(_vpnLinkKey);
   }
 
   Future<bool> toggleBookmark({required String url, required String title}) async {

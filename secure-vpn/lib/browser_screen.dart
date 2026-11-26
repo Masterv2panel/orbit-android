@@ -393,6 +393,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
       tab.progress = 0;
       tab.mainFrameErrorType = null;
       tab.mainFrameErrorDescription = null;
+      tab.mainFrameErrorHost = null;
+      tab.mainFrameErrorAt = null;
       tab.currentUrl = uri.toString();
       if (tab.controller == null) {
         tab.initialUrl = uri.toString();
@@ -1049,44 +1051,67 @@ class _BrowserScreenState extends State<BrowserScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-              child: TextField(
-                controller: _addressController,
-                textDirection: TextDirection.ltr,
-                keyboardType: TextInputType.url,
-                textInputAction: TextInputAction.go,
-                autocorrect: false,
-                enableSuggestions: false,
-                onSubmitted: (_) => _openAddress(),
-                decoration: InputDecoration(
-                  hintText: orbitText(context, 'نشانی وب یا جست‌وجو'),
-                  prefixIcon: Icon(
-                    https ? Icons.lock_outline : Icons.public,
-                    color: https
-                        ? const Color(0xFF47D7A0)
-                        : const Color(0xFFFFC46B),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  gradient: LinearGradient(
+                    colors: [
+                      (https ? const Color(0xFF47D7A0) : _accent)
+                          .withOpacity(.10),
+                      const Color(0xFF121B28),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  suffixIcon: IconButton(
-                    tooltip: orbitText(context, 'رفتن'),
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: _ready ? _openAddress : null,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(color: Color(0xFF29384A)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(color: Color(0xFF29384A)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(color: _accent, width: 1.5),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFF121B28),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 13,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (https ? const Color(0xFF47D7A0) : _accent)
+                          .withOpacity(.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _addressController,
+                  textDirection: TextDirection.ltr,
+                  keyboardType: TextInputType.url,
+                  textInputAction: TextInputAction.go,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onSubmitted: (_) => _openAddress(),
+                  decoration: InputDecoration(
+                    hintText: orbitText(context, 'نشانی وب یا جست‌وجو'),
+                    prefixIcon: Icon(
+                      https ? Icons.lock_rounded : Icons.public,
+                      size: 20,
+                      color: https
+                          ? const Color(0xFF47D7A0)
+                          : const Color(0xFFFFC46B),
+                    ),
+                    suffixIcon: IconButton(
+                      tooltip: orbitText(context, 'رفتن'),
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                      onPressed: _ready ? _openAddress : null,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(26),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(26),
+                      borderSide: const BorderSide(color: Color(0xFF29384A)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(26),
+                      borderSide: const BorderSide(color: _accent, width: 1.6),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 13,
+                    ),
                   ),
                 ),
               ),
@@ -1128,11 +1153,16 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 ),
               ),
             if (_activeTab.isLoading)
-              LinearProgressIndicator(
-                value: _activeTab.progress == 0 || _activeTab.progress >= 100
-                    ? null
-                    : _activeTab.progress / 100,
-                minHeight: 2,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: _activeTab.progress == 0 || _activeTab.progress >= 100
+                      ? null
+                      : _activeTab.progress / 100,
+                  minHeight: 2.5,
+                  backgroundColor: const Color(0xFF1A2432),
+                  valueColor: const AlwaysStoppedAnimation(_accent),
+                ),
               ),
             Expanded(
               child: IndexedStack(index: _activeTabIndex, children: children),
@@ -1181,14 +1211,18 @@ class _BrowserScreenState extends State<BrowserScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF111A27),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFF29384A)),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF131D2B), Color(0xFF0F1721)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF2B3C4F)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x44000000),
-                  blurRadius: 20,
-                  offset: Offset(0, 8),
+                  color: Color(0x55000000),
+                  blurRadius: 22,
+                  offset: Offset(0, 10),
                 ),
               ],
             ),
@@ -1278,10 +1312,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
       return _DetailedWebErrorCard(
         errorType: tab.mainFrameErrorType!,
         description: tab.mainFrameErrorDescription ?? '',
-        connectionClosed:
-            '${tab.mainFrameErrorType} ${tab.mainFrameErrorDescription}'
-                .toLowerCase()
-                .contains('connection_closed'),
+        host: tab.mainFrameErrorHost,
+        occurredAt: tab.mainFrameErrorAt,
         onRetry: () {
           final url = tab.currentUrl;
           if (url != null) unawaited(_openAddressInTab(tab, url));
@@ -1334,6 +1366,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
         safeBrowsingEnabled: true,
         allowFileAccess: false,
         allowContentAccess: false,
+        allowFileAccessFromFileURLs: false,
+        allowUniversalAccessFromFileURLs: false,
         geolocationEnabled: false,
         thirdPartyCookiesEnabled: _thirdPartyCookiesEnabled,
         useWideViewPort: true,
@@ -1343,11 +1377,26 @@ class _BrowserScreenState extends State<BrowserScreen> {
         displayZoomControls: false,
         supportMultipleWindows: false,
         mediaPlaybackRequiresUserGesture: true,
-        mixedContentMode: MixedContentMode.MIXED_CONTENT_NEVER_ALLOW,
+        // NEVER_ALLOW silently kills the whole connection (ERR_CONNECTION_CLOSED)
+        // the instant a page references even one non-HTTPS sub-resource on a
+        // modern mixed CDN setup. COMPATIBILITY_MODE lets the page load while
+        // still refusing to fetch the insecure sub-resource itself.
+        mixedContentMode: MixedContentMode.MIXED_CONTENT_COMPATIBILITY_MODE,
         useShouldOverrideUrlLoading: true,
         useOnDownloadStart: true,
         isInspectable: false,
         useOnRenderProcessGone: true,
+        // --- anti-leak / hardening ---
+        allowBackgroundAudioPlaying: false,
+        disableDefaultErrorPage: false,
+        clearSessionCache: false,
+        cacheMode: CacheMode.LOAD_DEFAULT,
+        saveFormData: false,
+        networkAvailable: true,
+        disableContextMenu: false,
+        verticalScrollBarEnabled: true,
+        horizontalScrollBarEnabled: false,
+        incognito: false,
       ),
       initialUserScripts: scripts,
       onWebViewCreated: (controller) {
@@ -1375,6 +1424,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
           tab.progress = 0;
           tab.mainFrameErrorType = null;
           tab.mainFrameErrorDescription = null;
+          tab.mainFrameErrorHost = null;
+          tab.mainFrameErrorAt = null;
           if (url != null && url.toString() != 'about:blank') {
             tab.currentUrl = url.toString();
             if (identical(tab, _activeTab))
@@ -1410,10 +1461,17 @@ class _BrowserScreenState extends State<BrowserScreen> {
             .replaceAll(RegExp(r'https?://\S+'), '[URL]')
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
+        // Keep only the host for display (never the full path/query), so the
+        // diagnostic card can say *which site* failed without logging or
+        // showing the rest of the URL.
+        final failedHost = Uri.tryParse(request.url.toString())?.host;
         setState(() {
           tab.isLoading = false;
           tab.mainFrameErrorType = errorType;
           tab.mainFrameErrorDescription = safeDescription;
+          tab.mainFrameErrorHost =
+              (failedHost != null && failedHost.isNotEmpty) ? failedHost : null;
+          tab.mainFrameErrorAt = DateTime.now();
           tab.controller = null;
           _error = null;
         });
@@ -1479,103 +1537,398 @@ class _BrowserTab {
   bool rendererDidCrash = false;
   String? mainFrameErrorType;
   String? mainFrameErrorDescription;
+  String? mainFrameErrorHost;
+  DateTime? mainFrameErrorAt;
+}
+
+/// Maps a lowercased WebView error-type string to a plain-language likely
+/// cause, shown in Persian/English, so a non-technical user gets more than
+/// just the raw Android error code. These are *hypotheses*, not certainties
+/// — the UI always says so, because WebView's error alone can't distinguish
+/// VPN vs. network vs. destination-site problems.
+class _ErrorExplanation {
+  const _ErrorExplanation({
+    required this.icon,
+    required this.color,
+    required this.faSummary,
+    required this.enSummary,
+    required this.faLikelyCauses,
+    required this.enLikelyCauses,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String faSummary;
+  final String enSummary;
+  final List<String> faLikelyCauses;
+  final List<String> enLikelyCauses;
+
+  static _ErrorExplanation forType(String errorType, String description) {
+    final key = '$errorType $description'.toLowerCase();
+
+    if (key.contains('connection_closed')) {
+      return const _ErrorExplanation(
+        icon: Icons.link_off_rounded,
+        color: Color(0xFFFF9B6B),
+        faSummary: 'اتصال پیش از دریافت پاسخ کامل، بسته شد.',
+        enSummary: 'The connection closed before a full response arrived.',
+        faLikelyCauses: [
+          'سرور مقصد یا CDN آن، این IP (یا کانکشن VPN) را رد یا قطع کرده است.',
+          'یک فایروال یا فیلترینگ سر راه، پروتکل تونل را شناسایی و بسته است.',
+          'قطعی موقت یا ناپایداری در مسیر خود تونل VPN.',
+        ],
+        enLikelyCauses: [
+          'The destination server or its CDN rejected or dropped this IP/VPN connection.',
+          'A firewall or DPI mid-route detected and closed the tunnel protocol.',
+          'Temporary instability or a drop in the VPN tunnel itself.',
+        ],
+      );
+    }
+    if (key.contains('timed_out') || key.contains('timeout')) {
+      return const _ErrorExplanation(
+        icon: Icons.hourglass_disabled_rounded,
+        color: Color(0xFFFFC46B),
+        faSummary: 'سرور به‌موقع پاسخ نداد.',
+        enSummary: 'The server did not respond in time.',
+        faLikelyCauses: [
+          'سرعت یا تأخیر بالای مسیر VPN.',
+          'بار زیاد یا کندی سرور مقصد.',
+          'قطع لحظه‌ای اتصال اینترنت دستگاه.',
+        ],
+        enLikelyCauses: [
+          'High latency or low throughput on the VPN route.',
+          'The destination server is overloaded or slow.',
+          'A brief drop in the device\'s own internet connection.',
+        ],
+      );
+    }
+    if (key.contains('name_not_resolved') || key.contains('dns')) {
+      return const _ErrorExplanation(
+        icon: Icons.dns_rounded,
+        color: Color(0xFFFFC46B),
+        faSummary: 'نام دامنه به آدرس IP تبدیل نشد (خطای DNS).',
+        enSummary: 'The domain name could not be resolved (DNS failure).',
+        faLikelyCauses: [
+          'DNS داخل تونل VPN در دسترس نیست یا دامنه را مسدود کرده.',
+          'غلط‌تایپی در نشانی یا دامنه دیگر وجود ندارد.',
+        ],
+        enLikelyCauses: [
+          'The DNS server used inside the VPN tunnel is unreachable or blocks this domain.',
+          'A typo in the address, or the domain no longer exists.',
+        ],
+      );
+    }
+    if (key.contains('ssl') || key.contains('cert') || key.contains('tls') || key.contains('handshake')) {
+      return const _ErrorExplanation(
+        icon: Icons.gpp_bad_rounded,
+        color: Color(0xFFFF8991),
+        faSummary: 'بررسی گواهی امنیتی (TLS/SSL) سایت شکست خورد.',
+        enSummary: 'The site\'s TLS/SSL certificate check failed.',
+        faLikelyCauses: [
+          'ساعت یا تاریخ دستگاه نادرست است.',
+          'گواهی سایت منقضی شده یا نامعتبر است.',
+          'یک واسطه (فیلترینگ یا پراکسی) در حال دستکاری ترافیک HTTPS است.',
+        ],
+        enLikelyCauses: [
+          'The device\'s clock/date is wrong.',
+          'The site\'s certificate is expired or invalid.',
+          'A middlebox (censorship or a proxy) is tampering with HTTPS traffic.',
+        ],
+      );
+    }
+    if (key.contains('internet_disconnected') || key.contains('network')) {
+      return const _ErrorExplanation(
+        icon: Icons.signal_wifi_off_rounded,
+        color: Color(0xFFFF9B6B),
+        faSummary: 'دستگاه به اینترنت دسترسی ندارد.',
+        enSummary: 'The device has no internet access.',
+        faLikelyCauses: [
+          'وای‌فای یا دیتای موبایل خاموش یا قطع است.',
+          'حالت هواپیما روشن است.',
+        ],
+        enLikelyCauses: [
+          'Wi-Fi or mobile data is off or disconnected.',
+          'Airplane mode is on.',
+        ],
+      );
+    }
+    if (key.contains('too_many_redirects')) {
+      return const _ErrorExplanation(
+        icon: Icons.loop_rounded,
+        color: Color(0xFFFFC46B),
+        faSummary: 'سایت در یک چرخهٔ تغییرمسیر (redirect) بی‌پایان گیر کرده.',
+        enSummary: 'The site is stuck in an infinite redirect loop.',
+        faLikelyCauses: [
+          'تنظیمات کوکی یا کش قدیمی سایت در مرورگر.',
+          'خطای پیکربندی خود سایت.',
+        ],
+        enLikelyCauses: [
+          'Stale cookies/cache for this site in the browser.',
+          'A configuration mistake on the site itself.',
+        ],
+      );
+    }
+    return const _ErrorExplanation(
+      icon: Icons.error_outline_rounded,
+      color: Color(0xFFFF8991),
+      faSummary: 'صفحه با یک خطای ناشناخته بارگذاری نشد.',
+      enSummary: 'The page failed to load with an unrecognized error.',
+      faLikelyCauses: [
+        'جزئیات کامل در «شرح فنی» پایین همین کارت آمده است.',
+      ],
+      enLikelyCauses: [
+        'Full details are in the "Technical description" below.',
+      ],
+    );
+  }
 }
 
 class _DetailedWebErrorCard extends StatelessWidget {
   const _DetailedWebErrorCard({
     required this.errorType,
     required this.description,
-    required this.connectionClosed,
     required this.onRetry,
+    this.host,
+    this.occurredAt,
   });
 
   final String errorType;
   final String description;
-  final bool connectionClosed;
+  final String? host;
+  final DateTime? occurredAt;
   final VoidCallback onRetry;
 
+  String _formattedTime(DateTime time) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(time.hour)}:${two(time.minute)}:${two(time.second)}';
+  }
+
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: const Color(0xFF080B12),
-    child: SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF141D2A),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF52E6DF)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.wifi_off_rounded,
-                    size: 42,
-                    color: Color(0xFFFFC46B),
+  Widget build(BuildContext context) {
+    final explanation = _ErrorExplanation.forType(errorType, description);
+    return ColoredBox(
+      color: const Color(0xFF080B12),
+      child: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 540),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      explanation.color.withOpacity(.10),
+                      const Color(0xFF131A26),
+                      const Color(0xFF0E141F),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    orbitTextPair(
-                      context,
-                      'خطای اتصال صفحه',
-                      'Page connection error',
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: explanation.color.withOpacity(.45)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: explanation.color.withOpacity(.12),
+                      blurRadius: 32,
+                      offset: const Offset(0, 14),
                     ),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              explanation.color.withOpacity(.22),
+                              explanation.color.withOpacity(.04),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: explanation.color.withOpacity(.6),
+                            width: 1.4,
+                          ),
+                        ),
+                        child: Icon(
+                          explanation.icon,
+                          size: 34,
+                          color: explanation.color,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    orbitTextPair(
-                      context,
-                      connectionClosed
-                          ? 'اتصال پیش از دریافت پاسخ بسته شد. این پیام به‌تنهایی مشخص نمی‌کند مشکل از VPN، شبکه یا خود سایت است.'
-                          : 'صفحه بارگذاری نشد. نوع و شرحی که Android WebView گزارش کرده در ادامه آمده است.',
-                      connectionClosed
-                          ? 'The connection closed before a response arrived. This alone cannot tell whether the VPN, network, or site caused it.'
-                          : 'The page did not load. The error type and description reported by Android WebView are shown below.',
+                    const SizedBox(height: 16),
+                    Text(
+                      orbitTextPair(
+                        context,
+                        'خطای اتصال صفحه',
+                        'Page connection error',
+                      ),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFBECADB),
-                      height: 1.5,
+                    if (host != null || occurredAt != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        [
+                          if (host != null) host!,
+                          if (occurredAt != null) _formattedTime(occurredAt!),
+                        ].join('  ·  '),
+                        textAlign: TextAlign.center,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(
+                          color: Color(0xFF8694A8),
+                          fontSize: 12.5,
+                          letterSpacing: .2,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      orbitTextPair(
+                        context,
+                        explanation.faSummary,
+                        explanation.enSummary,
+                      ),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFDDE5F0),
+                        height: 1.55,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  _DiagnosticValue(
-                    label: orbitTextPair(context, 'نوع خطا', 'Error type'),
-                    value: errorType,
-                  ),
-                  const SizedBox(height: 10),
-                  _DiagnosticValue(
-                    label: orbitTextPair(
-                      context,
-                      'شرح دقیق Android WebView',
-                      'Android WebView description',
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0x14FFFFFF),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            orbitTextPair(
+                              context,
+                              'دلایل محتمل (قطعی نیست):',
+                              'Likely causes (not certain):',
+                            ),
+                            style: const TextStyle(
+                              color: Color(0xFFBECADB),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          for (var i = 0; i < explanation.faLikelyCauses.length; i++)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 3),
+                                    child: Icon(
+                                      Icons.circle,
+                                      size: 5,
+                                      color: Color(0xFF7C8AA0),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      orbitTextPair(
+                                        context,
+                                        explanation.faLikelyCauses[i],
+                                        explanation.enLikelyCauses[i],
+                                      ),
+                                      style: const TextStyle(
+                                        color: Color(0xFFBECADB),
+                                        height: 1.5,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                    value: description.isEmpty ? '(empty)' : description,
-                  ),
-                  const SizedBox(height: 18),
-                  FilledButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: Text(orbitTextPair(context, 'تلاش دوباره', 'Retry')),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
+                      child: ExpansionTile(
+                        tilePadding: EdgeInsets.zero,
+                        childrenPadding: EdgeInsets.zero,
+                        iconColor: const Color(0xFF8694A8),
+                        collapsedIconColor: const Color(0xFF8694A8),
+                        title: Text(
+                          orbitTextPair(
+                            context,
+                            'شرح فنی کامل',
+                            'Full technical description',
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xFF8694A8),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        children: [
+                          const SizedBox(height: 4),
+                          _DiagnosticValue(
+                            label: orbitTextPair(context, 'نوع خطا', 'Error type'),
+                            value: errorType,
+                          ),
+                          const SizedBox(height: 10),
+                          _DiagnosticValue(
+                            label: orbitTextPair(
+                              context,
+                              'شرح دقیق Android WebView',
+                              'Android WebView description',
+                            ),
+                            value: description.isEmpty ? '(empty)' : description,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(
+                        orbitTextPair(context, 'تلاش دوباره', 'Retry'),
+                      ),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _DiagnosticValue extends StatelessWidget {
