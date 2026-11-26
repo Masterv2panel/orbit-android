@@ -1274,6 +1274,20 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 
   Widget _buildTabView(_BrowserTab tab) {
+    if (tab.mainFrameErrorType != null) {
+      return _DetailedWebErrorCard(
+        errorType: tab.mainFrameErrorType!,
+        description: tab.mainFrameErrorDescription ?? '',
+        connectionClosed:
+            '${tab.mainFrameErrorType} ${tab.mainFrameErrorDescription}'
+                .toLowerCase()
+                .contains('connection_closed'),
+        onRetry: () {
+          final url = tab.currentUrl;
+          if (url != null) unawaited(_openAddressInTab(tab, url));
+        },
+      );
+    }
     if (tab.rendererGone) {
       return _RendererRecoveryCard(
         key: ValueKey('renderer-gone-${tab.id}-${tab.webviewRevision}'),
@@ -1309,10 +1323,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
             ),
           ]);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        InAppWebView(
+    return InAppWebView(
       key: ValueKey('web-${tab.id}-${tab.webviewRevision}'),
       initialUrlRequest: URLRequest(url: WebUri(initialUrl)),
       initialSettings: InAppWebViewSettings(
@@ -1403,6 +1414,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
           tab.isLoading = false;
           tab.mainFrameErrorType = errorType;
           tab.mainFrameErrorDescription = safeDescription;
+          tab.controller = null;
           _error = null;
         });
       },
@@ -1446,23 +1458,6 @@ class _BrowserScreenState extends State<BrowserScreen> {
             retain: false,
           ),
       onDownloadStartRequest: (_, request) => _onDownloadStart(request),
-        ),
-        if (tab.mainFrameErrorType != null)
-          Positioned.fill(
-            child: _DetailedWebErrorCard(
-              errorType: tab.mainFrameErrorType!,
-              description: tab.mainFrameErrorDescription ?? '',
-              connectionClosed:
-                  '${tab.mainFrameErrorType} ${tab.mainFrameErrorDescription}'
-                      .toLowerCase()
-                      .contains('connection_closed'),
-              onRetry: () {
-                final url = tab.currentUrl;
-                if (url != null) unawaited(_openAddressInTab(tab, url));
-              },
-            ),
-          ),
-      ],
     );
   }
 }
