@@ -391,6 +391,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
       _error = null;
       tab.isLoading = true;
       tab.progress = 0;
+      tab.mainFrameErrorType = null;
+      tab.mainFrameErrorDescription = null;
       tab.currentUrl = uri.toString();
       if (tab.controller == null) {
         tab.initialUrl = uri.toString();
@@ -1307,7 +1309,10 @@ class _BrowserScreenState extends State<BrowserScreen> {
             ),
           ]);
 
-    return InAppWebView(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        InAppWebView(
       key: ValueKey('web-${tab.id}-${tab.webviewRevision}'),
       initialUrlRequest: URLRequest(url: WebUri(initialUrl)),
       initialSettings: InAppWebViewSettings(
@@ -1357,6 +1362,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
         setState(() {
           tab.isLoading = true;
           tab.progress = 0;
+          tab.mainFrameErrorType = null;
+          tab.mainFrameErrorDescription = null;
           if (url != null && url.toString() != 'about:blank') {
             tab.currentUrl = url.toString();
             if (identical(tab, _activeTab))
@@ -1382,7 +1389,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
         setState(() => tab.title = title);
       },
       onReceivedError: (controller, request, error) {
-        if (request.isForMainFrame != true ||
+        if (request.isForMainFrame == false ||
             !mounted ||
             !_tabs.contains(tab) ||
             !identical(tab.controller, controller))
@@ -1392,34 +1399,11 @@ class _BrowserScreenState extends State<BrowserScreen> {
             .replaceAll(RegExp(r'https?://\S+'), '[URL]')
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
-        final isConnectionClosed =
-            '$errorType $safeDescription'.toLowerCase().contains(
-              'connection_closed',
-            );
-        final diagnosis = isConnectionClosed
-            ? orbitTextPair(
-                context,
-                'اتصال پیش از دریافت پاسخ بسته شد. ممکن است مسیر VPN/سرور/شبکه یا خود سایت اتصال را قطع کرده باشد؛ این خطا به‌تنهایی علت قطعی را مشخص نمی‌کند.',
-                'The connection closed before a response arrived. The VPN/server/network path or the site may have closed it; this error alone does not identify the cause.',
-              )
-            : orbitTextPair(
-                context,
-                'اتصال صفحه ناموفق بود. جزئیات زیر را برای تشخیص مسیر بررسی کن.',
-                'The page connection failed. Check the details below to diagnose the route.',
-              );
-        final clippedDescription = safeDescription.length > 160
-            ? safeDescription.substring(0, 160)
-            : safeDescription;
-        final details = safeDescription.isEmpty
-            ? errorType
-            : '$errorType · $clippedDescription';
         setState(() {
           tab.isLoading = false;
-          _error = orbitTextPair(
-            context,
-            '$diagnosis\nجزئیات WebView: $details',
-            '$diagnosis\nWebView detail: $details',
-          );
+          tab.mainFrameErrorType = errorType;
+          tab.mainFrameErrorDescription = safeDescription;
+          _error = null;
         });
       },
       onRenderProcessGone: (controller, detail) {
@@ -1462,6 +1446,23 @@ class _BrowserScreenState extends State<BrowserScreen> {
             retain: false,
           ),
       onDownloadStartRequest: (_, request) => _onDownloadStart(request),
+        ),
+        if (tab.mainFrameErrorType != null)
+          Positioned.fill(
+            child: _DetailedWebErrorCard(
+              errorType: tab.mainFrameErrorType!,
+              description: tab.mainFrameErrorDescription ?? '',
+              connectionClosed:
+                  '${tab.mainFrameErrorType} ${tab.mainFrameErrorDescription}'
+                      .toLowerCase()
+                      .contains('connection_closed'),
+              onRetry: () {
+                final url = tab.currentUrl;
+                if (url != null) unawaited(_openAddressInTab(tab, url));
+              },
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1481,6 +1482,145 @@ class _BrowserTab {
   bool canGoForward = false;
   bool rendererGone = false;
   bool rendererDidCrash = false;
+  String? mainFrameErrorType;
+  String? mainFrameErrorDescription;
+}
+
+class _DetailedWebErrorCard extends StatelessWidget {
+  const _DetailedWebErrorCard({
+    required this.errorType,
+    required this.description,
+    required this.connectionClosed,
+    required this.onRetry,
+  });
+
+  final String errorType;
+  final String description;
+  final bool connectionClosed;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: const Color(0xFF080B12),
+    child: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF141D2A),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFF52E6DF)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(
+                    Icons.wifi_off_rounded,
+                    size: 42,
+                    color: Color(0xFFFFC46B),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    orbitTextPair(
+                      context,
+                      'خطای اتصال صفحه',
+                      'Page connection error',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    orbitTextPair(
+                      context,
+                      connectionClosed
+                          ? 'اتصال پیش از دریافت پاسخ بسته شد. این پیام به‌تنهایی مشخص نمی‌کند مشکل از VPN، شبکه یا خود سایت است.'
+                          : 'صفحه بارگذاری نشد. نوع و شرحی که Android WebView گزارش کرده در ادامه آمده است.',
+                      connectionClosed
+                          ? 'The connection closed before a response arrived. This alone cannot tell whether the VPN, network, or site caused it.'
+                          : 'The page did not load. The error type and description reported by Android WebView are shown below.',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFFBECADB),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _DiagnosticValue(
+                    label: orbitTextPair(context, 'نوع خطا', 'Error type'),
+                    value: errorType,
+                  ),
+                  const SizedBox(height: 10),
+                  _DiagnosticValue(
+                    label: orbitTextPair(
+                      context,
+                      'شرح دقیق Android WebView',
+                      'Android WebView description',
+                    ),
+                    value: description.isEmpty ? '(empty)' : description,
+                  ),
+                  const SizedBox(height: 18),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(orbitTextPair(context, 'تلاش دوباره', 'Retry')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _DiagnosticValue extends StatelessWidget {
+  const _DiagnosticValue({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0B111A),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFF344255)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF9AA5B5),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SelectableText(
+          value,
+          textDirection: TextDirection.ltr,
+          style: const TextStyle(
+            color: Color(0xFFFFD18A),
+            fontFamily: 'monospace',
+            fontSize: 13,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _RendererRecoveryCard extends StatelessWidget {
