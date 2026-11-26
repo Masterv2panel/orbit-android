@@ -385,10 +385,10 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     final connected = _state == 'connected';
     final connecting = _state == 'connecting';
     final statusColor = connected
-        ? const Color(0xFF47D7A0)
+        ? const Color(0xFF54E0B0)
         : connecting
         ? const Color(0xFFFFC46B)
-        : const Color(0xFF8992A5);
+        : const Color(0xFF93A1B8);
     final statusText = orbitText(
       context,
       connected
@@ -399,12 +399,19 @@ class _ConnectionScreenState extends State<ConnectionScreen>
           ? 'خطا در اتصال'
           : 'قطع',
     );
+    final scheme = Theme.of(context).colorScheme;
+    final cardDecoration = BoxDecoration(
+      color: const Color(0xFF101722),
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(color: const Color(0xFF202C3B)),
+    );
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 20,
         title: const Text(
           'Orbit Secure',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: .2),
         ),
         actions: [
           IconButton(
@@ -414,7 +421,7 @@ class _ConnectionScreenState extends State<ConnectionScreen>
           ),
           IconButton(
             tooltip: orbitText(context, 'مجوزها و اطلاعات برنامه'),
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline_rounded),
             onPressed: () => showLicensePage(
               context: context,
               applicationName: 'Orbit Secure',
@@ -425,237 +432,357 @@ class _ConnectionScreenState extends State<ConnectionScreen>
               ),
             ),
           ),
+          const SizedBox(width: 6),
         ],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 28),
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF14313A),
-                    Color(0xFF182033),
-                    Color(0xFF111620),
-                  ],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-                border: Border.all(color: const Color(0x6652E6DF)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x2252E6DF),
-                    blurRadius: 28,
-                    offset: Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 82,
-                    height: 82,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0x2252E6DF),
-                      border: Border.all(
-                        color: statusColor.withOpacity(0.55),
-                        width: 1.5,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 32),
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF10343B),
+                        Color(0xFF142337),
+                        Color(0xFF101722),
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                    border: Border.all(color: const Color(0x5552E6DF)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1F36D6D0),
+                        blurRadius: 30,
+                        offset: Offset(0, 12),
                       ),
-                    ),
-                    child: Icon(
-                      connected ? Icons.shield_rounded : Icons.shield_outlined,
-                      size: 42,
-                      color: statusColor,
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    statusText,
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: statusColor,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _profile == null
-                        ? orbitText(context, 'پروفایل سرور وارد نشده')
-                        : '${_profile!.host}:${_profile!.port}',
-                    textDirection: TextDirection.ltr,
-                    style: const TextStyle(
-                      color: Color(0xFFB9C1D3),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0x22101522),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.circle, size: 8, color: statusColor),
-                        const SizedBox(width: 8),
-                        Text(
-                          orbitText(
-                            context,
-                            connected ? 'تونل فعال' : 'تونل امن Hysteria2',
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 76,
+                        height: 76,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: statusColor.withOpacity(.10),
+                          border: Border.all(
+                            color: statusColor.withOpacity(.55),
+                            width: 1.5,
                           ),
-                          style: const TextStyle(
-                            color: Color(0xFFD8E5E8),
-                            fontSize: 12,
+                        ),
+                        child: Icon(
+                          connected
+                              ? Icons.shield_rounded
+                              : Icons.shield_outlined,
+                          size: 38,
+                          color: statusColor,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 25,
+                          color: statusColor,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        _profile == null
+                            ? orbitText(context, 'پروفایل سرور وارد نشده')
+                            : '${_profile!.host}:${_profile!.port}',
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFBECADB),
+                          fontSize: 14,
+                          letterSpacing: .25,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0x25101522),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.circle, size: 8, color: statusColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              orbitText(
+                                context,
+                                connected ? 'تونل فعال' : 'تونل امن Hysteria2',
+                              ),
+                              style: const TextStyle(
+                                color: Color(0xFFD9E5ED),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 25),
+                Text(
+                  orbitText(context, 'پروفایل اتصال'),
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 11),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: cardDecoration,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: _linkController,
+                        maxLines: _showLink ? 4 : 1,
+                        minLines: 1,
+                        obscureText: !_showLink,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        keyboardType: TextInputType.url,
+                        style: const TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          labelText: orbitText(context, 'لینک Hysteria2'),
+                          hintText: 'hysteria2://…',
+                          helperText: orbitText(
+                            context,
+                            'اطلاعات لینک فقط در حافظهٔ همین اجرا نگه داشته می‌شود.',
+                          ),
+                          helperMaxLines: 2,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF344255),
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFF0B111A),
+                          alignLabelWithHint: true,
+                          suffixIcon: IconButton(
+                            tooltip: orbitText(
+                              context,
+                              _showLink ? 'پنهان‌کردن لینک' : 'نمایش موقت لینک',
+                            ),
+                            icon: Icon(
+                              _showLink
+                                  ? Icons.visibility_off_rounded
+                                  : Icons.visibility_rounded,
+                            ),
+                            onPressed: () =>
+                                setState(() => _showLink = !_showLink),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : _importLink,
+                        icon: const Icon(Icons.link_rounded),
+                        label: Text(
+                          orbitText(context, 'بررسی و بارگذاری لینک'),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                        ),
+                      ),
+                      if (_profile != null) ...[
+                        const SizedBox(height: 12),
+                        _NoticeRow(
+                          color: _profile!.tlsInsecure
+                              ? const Color(0xFFFF858B)
+                              : const Color(0xFF54D6AA),
+                          icon: _profile!.tlsInsecure
+                              ? Icons.warning_amber_rounded
+                              : Icons.verified_user_outlined,
+                          text: orbitText(
+                            context,
+                            _profile!.tlsInsecure
+                                ? 'هشدار: بررسی گواهی TLS خاموش است؛ اتصال در برابر حملهٔ واسطه آسیب‌پذیر است.'
+                                : 'بررسی گواهی TLS روشن است.',
                           ),
                         ),
                       ],
+                    ],
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 13),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF321D28),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0x66FF7583)),
+                    ),
+                    child: _NoticeRow(
+                      color: const Color(0xFFFF8991),
+                      icon: Icons.error_outline_rounded,
+                      text: orbitText(context, _error!),
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 22),
-            Text(
-              orbitText(context, 'پروفایل اتصال'),
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _linkController,
-              maxLines: _showLink ? 4 : 1,
-              minLines: 1,
-              obscureText: !_showLink,
-              autocorrect: false,
-              enableSuggestions: false,
-              keyboardType: TextInputType.url,
-              decoration: InputDecoration(
-                labelText: orbitText(context, 'لینک Hysteria2'),
-                hintText: 'hysteria2://…',
-                helperText: orbitText(
-                  context,
-                  'اطلاعات لینک فقط در حافظهٔ همین اجرا نگه داشته می‌شود.',
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                filled: true,
-                fillColor: const Color(0xFF111722),
-                alignLabelWithHint: true,
-                suffixIcon: IconButton(
-                  tooltip: orbitText(
-                    context,
-                    _showLink ? 'پنهان‌کردن لینک' : 'نمایش موقت لینک',
-                  ),
-                  icon: Icon(
-                    _showLink ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () => setState(() => _showLink = !_showLink),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _busy ? null : _importLink,
-              icon: const Icon(Icons.link),
-              label: Text(orbitText(context, 'بررسی و بارگذاری لینک')),
-            ),
-            if (_profile != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                orbitText(
-                  context,
-                  _profile!.tlsInsecure
-                      ? 'هشدار: بررسی گواهی TLS خاموش است؛ اتصال در برابر حملهٔ واسطه آسیب‌پذیر است.'
-                      : 'بررسی گواهی TLS روشن است.',
-                ),
-                style: TextStyle(
-                  color: _profile!.tlsInsecure
-                      ? const Color(0xFFFF7B84)
-                      : Theme.of(context).colorScheme.secondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-            if (_error != null) ...[
-              const SizedBox(height: 14),
-              Text(
-                orbitText(context, _error!),
-                style: const TextStyle(color: Color(0xFFFF7B84)),
-              ),
-            ],
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: !_initialized || _busy ? null : _toggleConnection,
-              icon: _busy || connecting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(connected ? Icons.stop : Icons.power_settings_new),
-              label: Text(
-                orbitText(
-                  context,
-                  _busy || connecting
-                      ? 'در حال انجام…'
-                      : connected
-                      ? 'قطع اتصال'
-                      : 'اتصال VPN',
-                ),
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-              ),
-            ),
-            if (connected) ...[
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _latencyBusy ? null : _testTunnelLatency,
-                icon: _latencyBusy
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.speed),
-                label: Text(
-                  _latency == null
-                      ? orbitText(context, 'سنجش تأخیر از داخل تونل')
-                      : orbitTextPair(
-                          context,
-                          'تأخیر مسیر VPN: $_latency',
-                          'VPN route latency: ${orbitText(context, _latency!)}',
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: !_initialized || _busy ? null : _toggleConnection,
+                  icon: _busy || connecting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          connected
+                              ? Icons.stop_rounded
+                              : Icons.power_settings_new_rounded,
                         ),
+                  label: Text(
+                    orbitText(
+                      context,
+                      _busy || connecting
+                          ? 'در حال انجام…'
+                          : connected
+                          ? 'قطع اتصال'
+                          : 'اتصال VPN',
+                    ),
+                  ),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    backgroundColor: connected
+                        ? const Color(0xFF243442)
+                        : const Color(0xFF087F87),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                  ),
                 ),
-              ),
-            ],
-            const SizedBox(height: 22),
-            Text(
-              orbitText(
-                context,
-                'با اتصال، اندروید درخواست مجوز VPN را نشان می‌دهد. فقط پس از تأیید تو، تونل شروع می‌شود. '
-                'اتصال واقعی به سرور نیاز دارد و وضعیت «متصل» پس از گزارش هسته نمایش داده می‌شود.',
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF8992A5),
-                height: 1.7,
-                fontSize: 12,
-              ),
+                if (connected) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: cardDecoration,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(22),
+                      onTap: _latencyBusy ? null : _testTunnelLatency,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.speed_rounded, color: scheme.secondary),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _latency == null
+                                    ? orbitText(
+                                        context,
+                                        'سنجش تأخیر از داخل تونل',
+                                      )
+                                    : orbitTextPair(
+                                        context,
+                                        'تأخیر مسیر VPN: $_latency',
+                                        'VPN route latency: ${orbitText(context, _latency!)}',
+                                      ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (_latencyBusy)
+                              const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            else
+                              IconButton(
+                                tooltip: orbitText(
+                                  context,
+                                  'سنجش تأخیر از داخل تونل',
+                                ),
+                                onPressed: _testTunnelLatency,
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 21),
+                Text(
+                  orbitText(
+                    context,
+                    'با اتصال، اندروید درخواست مجوز VPN را نشان می‌دهد. فقط پس از تأیید تو، تونل شروع می‌شود. '
+                    'اتصال واقعی به سرور نیاز دارد و وضعیت «متصل» پس از گزارش هسته نمایش داده می‌شود.',
+                  ),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFF929FB1),
+                    height: 1.7,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _NoticeRow extends StatelessWidget {
+  const _NoticeRow({
+    required this.color,
+    required this.icon,
+    required this.text,
+  });
+
+  final Color color;
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, size: 19, color: color),
+      const SizedBox(width: 9),
+      Expanded(
+        child: Text(
+          text,
+          style: TextStyle(color: color, fontSize: 12, height: 1.5),
+        ),
+      ),
+    ],
+  );
 }

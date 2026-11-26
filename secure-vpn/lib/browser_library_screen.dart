@@ -79,6 +79,10 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
           style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         bottom: TabBar(
+          indicatorColor: const Color(0xFF52E6DF),
+          indicatorWeight: 3,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          unselectedLabelColor: const Color(0xFF929FB1),
           tabs: [
             Tab(
               icon: const Icon(Icons.history),
@@ -153,34 +157,50 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
       onRefresh: _refresh,
       child: ListView.separated(
         itemCount: _history.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
+        separatorBuilder: (_, __) => const SizedBox(height: 9),
         itemBuilder: (context, index) {
           final visit = _history[index];
-          return ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0x22152232),
-              child: Icon(Icons.history, color: Color(0xFF52E6DF)),
+          return Card(
+            margin: EdgeInsets.zero,
+            color: const Color(0xFF111A27),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: const BorderSide(color: Color(0xFF29384A)),
             ),
-            title: Text(
-              visit.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              '${visit.url}\n${_formatTime(visit.visitedAt)}',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textDirection: TextDirection.ltr,
-            ),
-            isThreeLine: true,
-            onTap: () => Navigator.pop(context, visit.url),
-            trailing: IconButton(
-              tooltip: orbitText(context, 'حذف از تاریخچه'),
-              icon: const Icon(Icons.close),
-              onPressed: () async {
-                await widget.store.removeVisit(visit);
-                await _refresh();
-              },
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              minLeadingWidth: 42,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 7,
+              ),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFF1A2B3A),
+                child: Icon(Icons.history, color: Color(0xFF52E6DF)),
+              ),
+              title: Text(
+                visit.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                '${visit.url}\n${_formatTime(visit.visitedAt)}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textDirection: TextDirection.ltr,
+              ),
+              isThreeLine: true,
+              onTap: () => Navigator.pop(context, visit.url),
+              trailing: IconButton(
+                tooltip: orbitText(context, 'حذف از تاریخچه'),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                icon: const Icon(Icons.close),
+                onPressed: () async {
+                  await widget.store.removeVisit(visit);
+                  await _refresh();
+                },
+              ),
             ),
           );
         },
@@ -198,33 +218,49 @@ class _BrowserLibraryScreenState extends State<BrowserLibraryScreen> {
       onRefresh: _refresh,
       child: ListView.separated(
         itemCount: _bookmarks.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
+        separatorBuilder: (_, __) => const SizedBox(height: 9),
         itemBuilder: (context, index) {
           final bookmark = _bookmarks[index];
-          return ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0x22152232),
-              child: Icon(Icons.bookmark, color: Color(0xFF52E6DF)),
+          return Card(
+            margin: EdgeInsets.zero,
+            color: const Color(0xFF111A27),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: const BorderSide(color: Color(0xFF29384A)),
             ),
-            title: Text(
-              bookmark.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              bookmark.url,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textDirection: TextDirection.ltr,
-            ),
-            onTap: () => Navigator.pop(context, bookmark.url),
-            trailing: IconButton(
-              tooltip: orbitText(context, 'حذف نشانک'),
-              icon: const Icon(Icons.bookmark_remove_outlined),
-              onPressed: () async {
-                await widget.store.removeBookmark(bookmark.url);
-                await _refresh();
-              },
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              minLeadingWidth: 42,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 7,
+              ),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFF1A2B3A),
+                child: Icon(Icons.bookmark, color: Color(0xFF52E6DF)),
+              ),
+              title: Text(
+                bookmark.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                bookmark.url,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textDirection: TextDirection.ltr,
+              ),
+              onTap: () => Navigator.pop(context, bookmark.url),
+              trailing: IconButton(
+                tooltip: orbitText(context, 'حذف نشانک'),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                icon: const Icon(Icons.bookmark_remove_outlined),
+                onPressed: () async {
+                  await widget.store.removeBookmark(bookmark.url);
+                  await _refresh();
+                },
+              ),
             ),
           );
         },
@@ -255,18 +291,27 @@ class _EmptyLibrary extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: const Color(0xFF52E6DF)),
-          const SizedBox(height: 14),
-          Text(
-            text,
-            style: Theme.of(context).textTheme.bodyLarge
-                ?.copyWith(color: const Color(0xFFADB7C8)),
-            textAlign: TextAlign.center,
-          ),
-        ],
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 360),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111A27),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF29384A)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: const Color(0xFF52E6DF)),
+            const SizedBox(height: 14),
+            Text(
+              text,
+              style: Theme.of(context).textTheme.bodyLarge
+                  ?.copyWith(color: const Color(0xFFBECADB), height: 1.5),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     ),
   );

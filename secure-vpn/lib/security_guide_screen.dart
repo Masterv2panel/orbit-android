@@ -30,10 +30,10 @@ class SecurityGuideScreen extends StatelessWidget {
       ],
     ),
     body: ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
       children: const [
         _GuideIntro(),
-        SizedBox(height: 12),
+        SizedBox(height: 8),
         _GuideCard(
           icon: Icons.shield_outlined,
           title: 'تونل VPN و نشانی IP',
@@ -128,13 +128,14 @@ class _GuideIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+    elevation: 0,
     color: const Color(0xFF12212B),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(24),
-      side: const BorderSide(color: Color(0x3352E6DF)),
+      borderRadius: BorderRadius.circular(20),
+      side: const BorderSide(color: Color(0x6652E6DF)),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -169,21 +170,31 @@ class _GuideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    margin: const EdgeInsets.only(bottom: 10),
-    color: const Color(0xFF111722),
+    elevation: 0,
+    margin: const EdgeInsets.only(bottom: 12),
+    color: const Color(0xFF111A27),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(22),
-      side: const BorderSide(color: Color(0x222D3A4D)),
+      borderRadius: BorderRadius.circular(18),
+      side: const BorderSide(color: Color(0xFF29384A)),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: SecurityGuideScreen._accent, size: 22),
-              const SizedBox(width: 10),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A2B3A),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, color: SecurityGuideScreen._accent, size: 21),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   orbitText(context, title),
@@ -199,7 +210,7 @@ class _GuideCard extends StatelessWidget {
               orbitText(context, paragraph),
               style: const TextStyle(
                 color: SecurityGuideScreen._muted,
-                height: 1.65,
+                height: 1.7,
               ),
             ),
             const SizedBox(height: 8),

@@ -894,6 +894,9 @@ class _BrowserScreenState extends State<BrowserScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: const Color(0xFF0C111A),
           titleSpacing: 12,
           title: Row(
             children: [
@@ -1043,7 +1046,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
         body: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 7, 12, 8),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
               child: TextField(
                 controller: _addressController,
                 textDirection: TextDirection.ltr,
@@ -1067,12 +1070,21 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(18),
+                    borderSide: const BorderSide(color: Color(0xFF29384A)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: const BorderSide(color: Color(0xFF29384A)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: const BorderSide(color: _accent, width: 1.5),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFF111722),
+                  fillColor: const Color(0xFF121B28),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: 14,
+                    vertical: 13,
                   ),
                 ),
               ),
@@ -1126,11 +1138,37 @@ class _BrowserScreenState extends State<BrowserScreen> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
-                child: Text(
-                  orbitText(context, _error!),
-                  style: const TextStyle(
-                    color: Color(0xFFFF7B84),
-                    fontSize: 12,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 11,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A1B25),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0x66FF7B84)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFFFF9AA1),
+                        size: 19,
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          orbitText(context, _error!),
+                          style: const TextStyle(
+                            color: Color(0xFFFFB7BC),
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1139,11 +1177,11 @@ class _BrowserScreenState extends State<BrowserScreen> {
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(10, 2, 10, 8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF111722),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFF293342)),
+              color: const Color(0xFF111A27),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFF29384A)),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x44000000),
@@ -1153,24 +1191,43 @@ class _BrowserScreenState extends State<BrowserScreen> {
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 42,
+                    minHeight: 44,
+                  ),
                   tooltip: orbitText(context, 'بازگشت'),
                   onPressed: _activeTab.canGoBack ? _goBack : null,
                   icon: const Icon(Icons.arrow_back_rounded),
                 ),
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 42,
+                    minHeight: 44,
+                  ),
                   tooltip: orbitText(context, 'جلو'),
                   onPressed: _activeTab.canGoForward ? _goForward : null,
                   icon: const Icon(Icons.arrow_forward_rounded),
                 ),
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 42,
+                    minHeight: 44,
+                  ),
                   tooltip: orbitText(context, 'خانه'),
                   onPressed: _goHome,
                   icon: const Icon(Icons.home_rounded),
                 ),
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 42,
+                    minHeight: 44,
+                  ),
                   tooltip: orbitText(
                     context,
                     _activeTab.isLoading ? 'توقف بارگذاری' : 'بارگذاری دوباره',
@@ -1187,11 +1244,21 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   ),
                 ),
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 42,
+                    minHeight: 44,
+                  ),
                   tooltip: orbitText(context, 'زبانهٔ جدید'),
                   onPressed: _createTab,
                   icon: const Icon(Icons.add_rounded),
                 ),
                 TextButton.icon(
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
                   onPressed: _showTabSwitcher,
                   icon: const Icon(Icons.tab_rounded, size: 19),
                   label: Text('${_activeTabIndex + 1}/${_tabs.length}'),
@@ -1409,8 +1476,15 @@ class _RendererRecoveryCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
-          color: const Color(0xFF151B28),
-          border: Border.all(color: const Color(0x55FFC46B)),
+          color: const Color(0xFF141D2A),
+          border: Border.all(color: const Color(0x66FFC46B)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x22000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1514,7 +1588,7 @@ class _BrowserHomeState extends State<_BrowserHome> {
   @override
   Widget build(BuildContext context) => Center(
     child: SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: Column(
@@ -1522,9 +1596,9 @@ class _BrowserHomeState extends State<_BrowserHome> {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(28),
                 gradient: const LinearGradient(
                   colors: [
                     Color(0xFF13313B),
@@ -1534,7 +1608,7 @@ class _BrowserHomeState extends State<_BrowserHome> {
                   begin: Alignment.topRight,
                   end: Alignment.bottomLeft,
                 ),
-                border: Border.all(color: const Color(0x5552E6DF)),
+                border: Border.all(color: const Color(0x6652E6DF)),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x2252E6DF),
@@ -1602,7 +1676,22 @@ class _BrowserHomeState extends State<_BrowserHome> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       filled: true,
-                      fillColor: const Color(0xFF0E141E),
+                      fillColor: const Color(0xFF0E1723),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: const BorderSide(color: Color(0xFF344355)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: const BorderSide(
+                          color: _BrowserScreenState._accent,
+                          width: 1.5,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -1613,8 +1702,9 @@ class _BrowserHomeState extends State<_BrowserHome> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0x2247D7A0),
+                        color: const Color(0x1F47D7A0),
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0x5547D7A0)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
